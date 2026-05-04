@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestão de Ferramentas Técnicas</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- LOGIN -->
+    <div id="loginView" class="card">
+      <h2>Login</h2>
+      <input id="loginEmail" type="email" placeholder="email@kuhn.com">
+      <input id="loginPassword" type="password" placeholder="Senha">
+      <button id="btnLogin">Entrar</button>
+      <p class="link" id="btnShowRegister">Criar conta</p>
+    </div>
+
+    <!-- CADASTRO -->
+    <div id="registerView" class="card hidden">
+      <h2>Cadastro</h2>
+      <input id="regName" type="text" placeholder="Nome completo">
+      <input id="regEmail" type="email" placeholder="email@kuhn.com">
+      <input id="regPassword" type="password" placeholder="Senha">
+      <input id="regTelefone" type="tel" placeholder="Telefone (opcional)">
+      <input id="regTeams" type="text" placeholder="Teams (opcional)">
+      
+      <select id="regRole">
+        <option value="tecnico">Técnico</option>
+        <option value="admin">Administrador</option>
+      </select>
+
+      <button id="btnRegister">Cadastrar</button>
+      <p class="link" id="btnShowLogin">Voltar para login</p>
+    </div>
+
+    <!-- ÁREA DO TÉCNICO -->
+    <div id="techView" class="card hidden">
+      <h2>Checklist Mensal de Ferramentas</h2>
+      <p>Mês de referência: <strong id="mesReferencia"></strong></p>
+      
+      <div id="avisoJaRespondeu" class="aviso hidden">
+        ⚠️ Você já respondeu o checklist deste mês. Deseja atualizar?
+      </div>
+
+      <form id="checklistForm"></form>
+
+      <button id="btnEnviarChecklist">Enviar checklist do mês</button>
+      <button class="btnLogout">Sair</button>
+    </div>
+
+    <!-- ÁREA DO ADMIN -->
+    <div id="adminView" class="card hidden">
+      <h2>Dashboard da Administração</h2>
+
+      <p>
+        Mês/Ano atual:
+        <strong id="adminMesAno"></strong>
+      </p>
+
+      <h3>Lista de Técnicos</h3>
+
+      <table id="tabelaTecnicos" border="1" width="100%">
+        <thead>
+          <tr>
+            <th>Técnico</th>
+            <th>Status do Checklist</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <br>
+
+      <!-- DETALHES DO TÉCNICO -->
+      <div id="detalhesTecnico" class="hidden">
+        <h3 id="nomeTecnicoSelecionado"></h3>
+      <span id="detNome"></span>
+      <span id="detEmail"></span>
+      <span id="detTelefone"></span>
+      <span id="detTeams"></span>
+
+        <p><strong>Email:</strong> <span id="detEmail"></span></p>
+        <p><strong>Telefone:</strong> <span id="detTelefone"></span></p>
+        <p><strong>Teams:</strong> <span id="detTeams"></span></p>
+
+        <br>
+        <button onclick="fecharDetalhesTecnico()">Fechar</button>
+      </div>
+
+      <br>
+
+      <button id="btnExportarExcel">
+        📊 Exportar Excel (Problemas por Técnico)
+      </button>
+
+      <br><br>
+
+      <button class="btnLogout">Sair</button>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
