@@ -1,109 +1,283 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Gestão de Ferramentas Técnicas</title>
-  <link rel="stylesheet" href="./style.css">
+  <meta charset="UTF-8" />
+  <title>Gestão de Ferramentas</title>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
-  <div id="app">
 
-    <!-- LOGIN -->
-    <div id="loginView" class="card">
-      <h2>Login</h2>
-      <input id="loginEmail" type="email" placeholder="email@kuhn.com">
-      <input id="loginPassword" type="password" placeholder="Senha">
-      <button id="btnLogin">Entrar</button>
-      <p class="link" id="btnShowRegister">Criar conta</p>
-    </div>
+<header id="mainHeader" class="hidden">
 
-    <!-- CADASTRO -->
-    <div id="registerView" class="card hidden">
-      <h2>Cadastro</h2>
-      <input id="regName" type="text" placeholder="Nome completo">
-      <input id="regEmail" type="email" placeholder="email@kuhn.com">
-      <input id="regPassword" type="password" placeholder="Senha">
-      <input id="regTelefone" type="tel" placeholder="Telefone (opcional)">
-      <input id="regTeams" type="text" placeholder="Teams (opcional)">
-      
-      <select id="regRole">
-        <option value="tecnico">Técnico</option>
-        <option value="admin">Administrador</option>
-      </select>
+  <div class="header-inner">
 
-      <button id="btnRegister">Cadastrar</button>
-      <p class="link" id="btnShowLogin">Voltar para login</p>
-    </div>
+    <strong class="header-title">
+      Gestão de Ferramentas
+    </strong>
 
-    <!-- ÁREA DO TÉCNICO -->
-    <div id="techView" class="card hidden">
-      <h2>Checklist Mensal de Ferramentas</h2>
-      <p>Mês de referência: <strong id="mesReferencia"></strong></p>
-      
-      <div id="avisoJaRespondeu" class="aviso hidden">
-        ⚠️ Você já respondeu o checklist deste mês. Deseja atualizar?
+    <div class="header-right">
+
+      <!-- PERFIL -->
+      <div class="perfil-wrapper">
+
+        <span id="headerPerfil" class="header-perfil">
+          perfil ▾
+        </span>
+
+        <div id="perfilMenu" class="perfil-menu hidden">
+
+          <button onclick="abrirConfiguracoes()">
+            Configurações
+          </button>
+
+          <button onclick="logout()">
+            Sair
+          </button>
+
+        </div>
+
       </div>
 
-      <form id="checklistForm"></form>
+      <!-- MENU -->
+      <div class="menu-wrapper">
 
-      <button id="btnEnviarChecklist">Enviar checklist do mês</button>
-      <button class="btnLogout">Sair</button>
-    </div>
+        <button id="menuToggle" class="menu-btn">
+          ⋮
+        </button>
 
-    <!-- ÁREA DO ADMIN -->
-    <div id="adminView" class="card hidden">
-      <h2>Dashboard da Administração</h2>
+        <div id="menuDropdown" class="menu-dropdown hidden"></div>
 
-      <p>
-        Mês/Ano atual:
-        <strong id="adminMesAno"></strong>
-      </p>
-
-      <h3>Lista de Técnicos</h3>
-
-      <table id="tabelaTecnicos" border="1" width="100%">
-        <thead>
-          <tr>
-            <th>Técnico</th>
-            <th>Status do Checklist</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <br>
-
-      <!-- DETALHES DO TÉCNICO -->
-      <div id="detalhesTecnico" class="hidden">
-        <h3 id="nomeTecnicoSelecionado"></h3>
-      <span id="detNome"></span>
-      <span id="detEmail"></span>
-      <span id="detTelefone"></span>
-      <span id="detTeams"></span>
-
-        <p><strong>Email:</strong> <span id="detEmail"></span></p>
-        <p><strong>Telefone:</strong> <span id="detTelefone"></span></p>
-        <p><strong>Teams:</strong> <span id="detTeams"></span></p>
-
-        <br>
-        <button onclick="fecharDetalhesTecnico()">Fechar</button>
       </div>
 
-      <br>
-
-      <button id="btnExportarExcel">
-        📊 Exportar Excel (Problemas por Técnico)
-      </button>
-
-      <br><br>
-
-      <button class="btnLogout">Sair</button>
     </div>
 
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script type="module" src="./script.js"></script>
+</header>
+
+<div id="app">
+
+  <!-- LOGIN -->
+  <div id="loginView" class="card">
+
+    <h2>Login</h2>
+
+    <input
+      id="loginEmail"
+      type="email"
+      placeholder="email@empresa.com"
+    >
+
+    <input
+      id="loginPassword"
+      type="password"
+      placeholder="Senha"
+    >
+
+    <button id="btnLogin">
+      Entrar
+    </button>
+
+    <p class="link" id="btnShowRegister">
+      Criar conta
+    </p>
+
+  </div>
+
+  <!-- CADASTRO -->
+  <div id="registerView" class="card hidden">
+
+    <h2>Cadastro</h2>
+
+    <input
+      id="regName"
+      placeholder="Nome completo"
+    >
+
+    <input
+      id="regEmail"
+      type="email"
+      placeholder="Email"
+    >
+
+    <input
+      id="regPassword"
+      type="password"
+      placeholder="Senha"
+    >
+
+    <select id="regRole">
+      <option value="tecnico">Técnico</option>
+      <option value="admin">Administrador</option>
+    </select>
+
+    <button id="btnRegister">
+      Cadastrar
+    </button>
+
+    <p class="link" id="btnShowLogin">
+      Voltar
+    </p>
+
+  </div>
+
+  <!-- TÉCNICO -->
+  <div id="techView" class="card hidden">
+
+    <h2>Checklist Mensal</h2>
+
+    <div id="avisoJaRespondeu" class="aviso hidden">
+      ⚠️ Você já respondeu o checklist deste mês.
+    </div>
+
+    <form id="checklistForm"></form>
+
+    <button id="btnEnviarChecklist">
+      Enviar checklist do mês
+    </button>
+
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="settingsView" class="card hidden">
+
+    <h2>Configurações</h2>
+
+    <div class="perfil-edit-area">
+
+      <label>Email:</label>
+
+      <input
+        type="email"
+        id="meuEmail"
+        readonly
+        style="background:#eee;"
+      >
+
+      <label>Telefone:</label>
+
+      <input
+        type="text"
+        id="meuTelefone"
+        placeholder="(41) 99999-9999"
+      >
+
+      <label>Teams:</label>
+
+      <input
+        type="text"
+        id="meuTeams"
+        placeholder="Link do Teams"
+      >
+
+      <div class="button-group">
+
+        <button id="btnSalvarDadosTecnico">
+          Salvar Alterações
+        </button>
+
+        <button
+          onclick="voltarDoSettings()"
+          class="btn-secondary"
+        >
+          Voltar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ADMIN -->
+  <div id="adminView" class="card hidden">
+
+    <h2>Administração</h2>
+
+    <p>
+      ✅ OK:
+      <strong id="countOk">0</strong>
+
+      |
+
+      ⚠️ Problemas:
+      <strong id="countProblemas">0</strong>
+
+      |
+
+      ❌ Pendentes:
+      <strong id="countPendente">0</strong>
+    </p>
+
+    <table id="tabelaTecnicos" border="1" width="100%">
+
+      <thead>
+        <tr>
+          <th>Técnico</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody></tbody>
+
+    </table>
+
+    <button id="btnExportarExcel">
+      📊 Exportar Excel
+    </button>
+
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modalTecnico" class="modal hidden">
+
+  <div class="modal-content">
+
+    <h2>Dados do Técnico</h2>
+
+    <label>Email:</label>
+
+    <input
+      type="email"
+      id="modalEmail"
+      readonly
+    >
+
+    <label>Telefone:</label>
+
+    <input
+      type="text"
+      id="modalTelefone"
+      readonly
+    >
+
+    <label>Teams:</label>
+
+    <input
+      type="text"
+      id="modalTeams"
+      readonly
+    >
+
+    <div class="modal-actions">
+
+      <button onclick="fecharModalTecnico()">
+        Fechar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<script type="module" src="./script.js"></script>
+
 </body>
 </html>
