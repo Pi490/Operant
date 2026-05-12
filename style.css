@@ -1,3 +1,5 @@
+/* ===== BASE ===== */
+
 body {
   font-family: Arial, sans-serif;
   background: #f3f4f6;
@@ -11,6 +13,12 @@ body {
   padding: 0 10px;
 }
 
+.hidden {
+  display: none !important;
+}
+
+/* ===== CARDS ===== */
+
 .card {
   background: #fff;
   padding: 20px;
@@ -18,6 +26,8 @@ body {
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
+
+/* ===== INPUTS ===== */
 
 input, select, button {
   width: 100%;
@@ -49,11 +59,109 @@ button:hover {
   text-decoration: underline;
 }
 
-.hidden {
-  display: none !important;
+/* ===== HEADER ===== */
+
+#mainHeader {
+  width: 100%;
+  background: #860707;
+  color: white;
 }
 
-/* ===== CHECKLIST COLAPSÁVEL ===== */
+.header-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 10px 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-title {
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.header-perfil {
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ===== BOTÃO ⋮ ===== */
+
+.menu-wrapper {
+  position: relative;
+}
+
+.menu-btn {
+  background: transparent;
+  color: white;
+  font-size: 20px;
+  border: none;
+  cursor: pointer;
+}
+
+/* ===== PERFIL ===== */
+
+.perfil-wrapper {
+  position: relative; /* ✅ IMPORTANTÍSSIMO */
+}
+
+/* ===== MENUS FLUTUANTES (ESTILO COMUM) ===== */
+
+.perfil-menu,
+.menu-dropdown {
+  position: absolute;
+  top: 32px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 2000;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+/* ===== BOTÕES DOS MENUS ===== */
+
+.perfil-menu button,
+.menu-dropdown button {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+  font-weight: bold;
+  color: #333;
+}
+
+.perfil-menu button:hover,
+.menu-dropdown button:hover {
+  background: #ff0000;
+  color: white;
+}
+
+/* ===== POSICIONAMENTO ESPECÍFICO ===== */
+
+/* Menu do perfil → embaixo do "tecnico" */
+.perfil-menu {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Menu dos três pontos → alinhado ao ícone ⋮ */
+.menu-dropdown {
+  right: 0;
+}
+
+/* ===== CHECKLIST ===== */
+
 #checklistForm {
   display: flex;
   flex-direction: column;
@@ -65,8 +173,6 @@ button:hover {
   border: 1px solid #e0e0e0;
   border-radius: 6px;
   background: #f9f9f9;
-  margin: 0;
-  padding: 0;
 }
 
 .ferramenta-item[open] {
@@ -75,35 +181,17 @@ button:hover {
 }
 
 .ferramenta-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   padding: 12px 15px;
   cursor: pointer;
-  user-select: none;
   font-weight: 500;
-  transition: all 0.2s;
 }
 
 .ferramenta-header:hover {
   background: #e8e8e8;
 }
 
-.status-icon {
-  font-size: 18px;
-  min-width: 20px;
-  text-align: center;
-}
-
-.ferramenta-nome {
-  flex: 1;
-  color: #333;
-  font-size: 14px;
-}
-
 .ferramenta-detalhes {
-  padding: 0 15px 15px 45px;
-  border-top: 1px solid #e0e0e0;
+  padding: 15px;
 }
 
 .pergunta-grupo {
@@ -111,109 +199,160 @@ button:hover {
 }
 
 .pergunta-grupo p {
-  margin: 8px 0 6px 0;
+  font-weight: 600;
+  font-size: 13px;
+}
+.opcoes-horizontal {
+  display: flex;
+  gap: 20px;
+}
+
+.opcoes-horizontal label {
+  cursor: pointer;
+}
+
+.checkbox-linha {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+/* Reposição alinhada à esquerda e compacta */
+.pergunta-reposicao {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.pergunta-reposicao label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+/* Reduz a altura geral da seção */
+.ferramenta-detalhes {
+  padding: 12px 15px;
+}
+
+.pergunta-grupo {
+  margin-bottom: 8px;
+}
+
+.pergunta-grupo {
+  margin-bottom: 10px;
+}
+
+.pergunta-grupo p {
+  margin: 6px 0;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.opcoes-horizontal {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.opcoes-horizontal label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.ferramenta-detalhes {
+  padding: 10px 15px;
+}
+
+.pergunta-grupo {
+  margin-bottom: 8px;
+}
+
+.fotos-grupo {
+  background: #fff;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.fotos-grupo p {
+  margin: 0 0 8px 0;
+  font-size: 13px;
   font-weight: 600;
   color: #333;
-  font-size: 13px;
 }
 
-.pergunta-grupo label {
-  display: inline-block;
-  margin-right: 15px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  width: auto;
-  font-size: 13px;
-  font-weight: normal;
-}
-
-.pergunta-grupo label input {
-  width: auto;
-  margin: 0 5px 0 0;
-  padding: 0;
-}
-
-.pergunta-grupo input[type="text"] {
-  width: 100%;
+.fotos-grupo input[type="file"] {
   margin-top: 6px;
-  padding: 8px;
-  font-size: 13px;
+}
+.preview-foto {
+  max-width: 160px;
+  max-height: 160px;
+  object-fit: cover;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
-.pergunta-grupo input[type="checkbox"] {
-  width: auto;
-  margin: 0 5px 0 0;
-  padding: 0;
-}
-
-.aviso {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  color: #856404;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  font-size: 13px;
-}
-
-/* Responsivo para mobile */
-@media (max-width: 600px) {
-  #app {
-    margin: 10px auto;
-  }
-  
-  .card {
-    padding: 15px;
-    margin-bottom: 15px;
-  }
-
-  .ferramenta-detalhes {
-    padding: 0 15px 15px 15px;
-  }
-
-  .ferramenta-header {
-    padding: 10px 12px;
-  }
-}
-
-.status-ok {
-  background-color: #d4edda;
-  color: #155724;
-  font-weight: bold;
-}
-
-.status-problemas {
-  background-color: #fff3cd;
-  color: #856404;
-  font-weight: bold;
-}
-
-.status-pendente {
-  background-color: #f8d7da;
-  color: #721c24;
-  font-weight: bold;
-}
-
-#tabelaTecnicos {
-  margin: 20px 0;
-}
-
-#tabelaTecnicos tbody tr td:first-child {
+.tecnico-hover {
   cursor: pointer;
-  color: #2563eb;
-  text-decoration: underline;
-  transition: all 0.2s;
 }
 
-#tabelaTecnicos tbody tr td:first-child:hover {
-  color: #1e4ed8;
-  font-weight: bold;
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
 }
 
-#detalhesTecnico {
-  background: #f0f7ff;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #2563eb;
-  margin-top: 20px;
+.modal.hidden{
+  display:none;
+}
+
+.modal-content{
+  background:white;
+  padding:25px;
+  border-radius:12px;
+  width:350px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.modal-content input{
+  padding:10px;
+}
+
+.modal-actions{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.btn-tecnico{
+  background:none;
+  border:none;
+  color:#0b57d0;
+  cursor:pointer;
+  font-size:15px;
+}
+
+.ok{
+  color:green;
+  font-weight:bold;
+}
+
+.problema{
+  color:#d97706;
+  font-weight:bold;
+}
+
+.pendente{
+  color:red;
+  font-weight:bold;
 }
