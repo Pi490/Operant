@@ -9,634 +9,1227 @@ import {
   setDoc,
   getDoc,
   collection,
-  query,
-  where,
   getDocs
 } from "./firebase.js";
 
+/* =====================================================
+   ESTADO
+===================================================== */
+
+window.usuarioLogadoUID = null;
+window.dadosUsuarioAtual = null;
+
+let checklistGerado = false;
+
+const agora = new Date();
+
+const mesAno =
+  `${agora.getMonth() + 1}-${agora.getFullYear()}`;
+
+/* =====================================================
+   CONFIG
+===================================================== */
+
+const perguntasConfig = {
+  posse: true,
+  condicao: true,
+  reposicao: true,
+  motivo: true,
+  fotos: true
+};
+
 const ferramentas = [
-  "Alicate universal",
-  "Alicate bomba dágua",
-  "Alicate de pressão",
-  "Alicate para anel trava int.",
-  "Alicate para anel trava ext.",
-  "Chave combinada 10mm",
-  "Chave combinada 13mm",
-  "Chave combinada 17mm",
-  "Chave combinada 19mm",
-  "Chave de cano 16",
-  "Chave Allen 12mm",
-  "Trena 05m",
-  "Talhadeira 5 x 150",
-  "Chave canhão 8mm",
-  "Jogo ch. de fenda e philips",
-  "Marreta 01 kg",
-  "Caixa de ferramenta",
-  "Multímetro digital",
-  "Alicate de crimpar terminal",
-  "Alicate descascador de fio elétrico",
-  "Chave Allen 14mm",
-  "Chave Allen 16mm",
-  "Chave Allen ½''",
-  "Chave Allen 9/16''",
-  "Chave Allen 5/8''",
-  "Jogo soquete métrico estriado",
-  "Soquete tipo Allen",
-  "Jogo saca pinos paralelos",
-  "Jogo chave Torx",
-  "Medidor de temperatura a laser",
-  "Chave ajustável 24\"",
-  "Jogo de chave catraca 8 a 24mm",
-  "Ferro de Solda 30W",
-  "Escova de aço",
-  "Alicate de corte",
-  "Alicate de bico",
-  "Arco de serra",
-  "Paquímetro",
-  "Martelo",
-  "Martelo Nylon",
-  "Chave combinada 32mm",
-  "Chave combinada 36mm",
-  "Chave combinada 30mm",
-  "Chave combinada 24mm",
-  "Chave combinada 22mm",
-  "Soquete estriado",
-  "Chave Grifo",
-  "Canhão 6mm",
-  "Canhão 8mm",
-  "Torno de bancada"
+"Alicate de bico",
+"Alicate bomba dágua",
+"Alicate de corte",
+"Alicate de crimpar terminal",
+"Alicate de pressão",
+"Alicate descascador de fio elétrico",
+"Alicate p/ anel trava ext.",
+"Alicate para anel trava ext.",
+"Alicate para anel trava int.",
+"Alicate universal",
+"Arco de serra",
+"Caixa de ferramenta",
+"Canhão 6mm",
+"Canhão 8mm",
+"Chave Allen 12mm",
+"Chave Allen 14mm",
+"Chave Allen 16mm",
+"Chave Allen ½’’",
+"Chave Allen 5/8’’",
+"Chave Allen 9/16’’",
+"Chave ajustável 24” abertura 60mm",
+"Chave canhão 8mm",
+"Chave combinada 10mm",
+"Chave combinada 13mm",
+"Chave combinada 17mm",
+"Chave combinada 19mm",
+"Chave combinada 22mm",
+"Chave combinada 24mm",
+"Chave combinada 30mm",
+"Chave combinada 32mm",
+"Chave combinada 36mm",
+"Chave de cano 16",
+"Chave Grifo",
+"Escova de aço",
+"Ferro de Solda 30W com suporte 9XC EDA",
+"Jogo ch. de fenda e philips",
+"Jogo chave Torx",
+"Jogo de chave catraca 8 a 24mm",
+"Jogo de chave combinada 10 a 50 mm",
+"Jogo saca pinos paralelos",
+"Jogo soquete métrico estriado",
+"Marreta 01 kg",
+"Martelo",
+"Martelo nylon",
+"Medidor de temperatura a laser",
+"Multímetro digital",
+"Paquímetro",
+"Soquete estriado",
+"Soquete tipo Allen",
+"Talhadeira 5 x 150",
+"Trena 05m",
+"Torno de bancada",
 ];
 
-let usuarioLogadoUID = null;
-let checklistForm = null;
-let mesReferencia = null;
-let btnEnviarChecklist = null;
-let avisoJaRespondeu = null;
+/* =====================================================
+   DOM
+===================================================== */
 
-const hoje = new Date();
-const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-const ano = hoje.getFullYear();
-const mesAno = `${ano}-${mes}`;
+let loginView;
+let registerView;
+let techView;
+let adminView;
+let settingsView;
+
+window.mainHeader = null;
+
+let headerPerfil;
+let perfilMenu;
+
+let menuToggle;
+let menuDropdown;
+
+/* =====================================================
+   INIT
+===================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  const btnLogin = document.getElementById("btnLogin");
-  const btnRegister = document.getElementById("btnRegister");
-  const btnShowRegister = document.getElementById("btnShowRegister");
-  const btnShowLogin = document.getElementById("btnShowLogin");
 
-  const loginView = document.getElementById("loginView");
-  const registerView = document.getElementById("registerView");
-  const techView = document.getElementById("techView");
-  const adminView = document.getElementById("adminView");
+  loginView = document.getElementById("loginView");
+  registerView = document.getElementById("registerView");
+  techView = document.getElementById("techView");
+  adminView = document.getElementById("adminView");
+  settingsView = document.getElementById("settingsView");
 
-  // ✅ Inicializar elementos do checklist
-  checklistForm = document.getElementById("checklistForm");
-  mesReferencia = document.getElementById("mesReferencia");
-  btnEnviarChecklist = document.getElementById("btnEnviarChecklist");
-  avisoJaRespondeu = document.getElementById("avisoJaRespondeu");
+  window.mainHeader =
+    document.getElementById("mainHeader");
 
-  // ✅ Elementos admin
-  const adminMesAno = document.getElementById("adminMesAno");
-  const btnExportarExcel = document.getElementById("btnExportarExcel");
+  headerPerfil =
+    document.getElementById("headerPerfil");
 
-  if (adminMesAno) {
-    adminMesAno.innerText = mesAno;
+  perfilMenu =
+    document.getElementById("perfilMenu");
+
+  menuToggle =
+    document.getElementById("menuToggle");
+
+  menuDropdown =
+    document.getElementById("menuDropdown");
+
+  /* =====================================================
+     BOTÕES
+  ===================================================== */
+
+  const btnLogin =
+    document.getElementById("btnLogin");
+
+  if (btnLogin) {
+    btnLogin.onclick = login;
   }
 
-  if (!checklistForm || !mesReferencia || !btnEnviarChecklist) {
-    console.warn("⚠️ Elementos do checklist não encontrados no HTML");
+  const btnRegister =
+    document.getElementById("btnRegister");
+
+  if (btnRegister) {
+    btnRegister.onclick = register;
   }
 
-  // ✅ Detectar login persistente ao carregar a página
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      console.log("✅ Usuário detectado automaticamente:", user.email);
-      usuarioLogadoUID = user.uid;
-      carregarPerfil(user.uid);
-    } else {
-      console.log("❌ Nenhum usuário logado");
-      showLogin();
-    }
-  });
+  const btnShowRegister =
+    document.getElementById("btnShowRegister");
 
-  // Delegação de evento para logout
-  document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("btnLogout")) {
-      logout();
-    }
-  });
+  if (btnShowRegister) {
+    btnShowRegister.onclick = showRegister;
+  }
 
-  btnShowRegister.addEventListener("click", showRegister);
-  btnShowLogin.addEventListener("click", showLogin);
-  btnRegister.addEventListener("click", register);
-  btnLogin.addEventListener("click", login);
+  const btnShowLogin =
+    document.getElementById("btnShowLogin");
+
+  if (btnShowLogin) {
+    btnShowLogin.onclick = showLogin;
+  }
+
+  const btnEnviarChecklist =
+    document.getElementById("btnEnviarChecklist");
 
   if (btnEnviarChecklist) {
-    btnEnviarChecklist.addEventListener("click", enviarChecklist);
+    btnEnviarChecklist.onclick =
+      enviarChecklist;
   }
 
-  if (btnExportarExcel) {
-    btnExportarExcel.addEventListener("click", exportarExcelProblemasPorTecnico);
+  const btnExportar =
+    document.getElementById("btnExportarExcel");
+
+  if (btnExportar) {
+    btnExportar.onclick = () => {
+      window.exportarExcelProblemasPorTecnico();
+    };
   }
 
-  function esconderTudo() {
+  const btnSalvar =
+    document.getElementById("btnSalvarDadosTecnico");
+
+  if (btnSalvar) {
+
+    btnSalvar.onclick = async () => {
+
+      try {
+
+        const telefone =
+          document.getElementById("meuTelefone").value;
+
+        const teams =
+          document.getElementById("meuTeams").value;
+
+        await setDoc(
+          doc(db, "users", window.usuarioLogadoUID),
+          {
+            telefone,
+            teams
+          },
+          {
+            merge: true
+          }
+        );
+
+        alert("✅ Dados atualizados com sucesso!");
+
+      } catch (err) {
+
+        console.error(err);
+
+        alert("Erro ao salvar dados.");
+      }
+    };
+  }
+
+  /* =====================================================
+     MENU PERFIL
+  ===================================================== */
+
+  if (headerPerfil) {
+
+    headerPerfil.onclick = e => {
+
+      e.stopPropagation();
+
+      if (perfilMenu) {
+        perfilMenu.classList.toggle("hidden");
+      }
+
+      if (menuDropdown) {
+        menuDropdown.classList.add("hidden");
+      }
+    };
+  }
+
+  if (menuToggle) {
+
+    menuToggle.onclick = e => {
+
+      e.stopPropagation();
+
+      if (menuDropdown) {
+        menuDropdown.classList.toggle("hidden");
+      }
+
+      if (perfilMenu) {
+        perfilMenu.classList.add("hidden");
+      }
+    };
+  }
+
+  document.onclick = () => {
+
+    if (perfilMenu) {
+      perfilMenu.classList.add("hidden");
+    }
+
+    if (menuDropdown) {
+      menuDropdown.classList.add("hidden");
+    }
+  };
+
+  /* =====================================================
+     SETTINGS
+  ===================================================== */
+
+  window.voltarDoSettings = () => {
+
+    if (settingsView) {
+      settingsView.classList.add("hidden");
+    }
+
+    window.carregarPerfil(
+      window.usuarioLogadoUID
+    );
+  };
+});
+
+/* =====================================================
+   UI
+===================================================== */
+
+function esconderTudo() {
+
+  if (loginView)
     loginView.classList.add("hidden");
+
+  if (registerView)
     registerView.classList.add("hidden");
+
+  if (techView)
     techView.classList.add("hidden");
+
+  if (adminView)
     adminView.classList.add("hidden");
-  }
 
-  function showRegister() {
-    esconderTudo();
-    registerView.classList.remove("hidden");
-  }
+  if (settingsView)
+    settingsView.classList.add("hidden");
+}
 
-  function showLogin() {
-    esconderTudo();
+window.showLogin = function () {
+
+  esconderTudo();
+
+  if (loginView) {
     loginView.classList.remove("hidden");
   }
+};
 
-  async function register() {
-    const nome = document.getElementById("regName").value.trim();
-    const email = document.getElementById("regEmail").value.trim().toLowerCase();
-    const senha = document.getElementById("regPassword").value;
-    const perfil = document.getElementById("regRole").value;
-    const telefone = document.getElementById("regTelefone").value.trim();
-    const teams = document.getElementById("regTeams").value.trim();
+function showRegister() {
 
-    if (!nome || !email || !senha) {
-      alert("❌ Preencha nome, email e senha!");
+  esconderTudo();
+
+  if (registerView) {
+    registerView.classList.remove("hidden");
+  }
+}
+
+/* =====================================================
+   AUTH
+===================================================== */
+
+onAuthStateChanged(auth, async user => {
+
+  if (user) {
+
+    window.usuarioLogadoUID = user.uid;
+
+    checklistGerado = false;
+
+    if (window.mainHeader) {
+      window.mainHeader.classList.remove("hidden");
+    }
+
+    await carregarPerfil(user.uid);
+
+  } else {
+
+    window.usuarioLogadoUID = null;
+
+    checklistGerado = false;
+
+    if (window.mainHeader) {
+      window.mainHeader.classList.add("hidden");
+    }
+
+    window.showLogin();
+  }
+});
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+async function login() {
+
+  try {
+
+    const email =
+      document.getElementById("loginEmail").value;
+
+    const senha =
+      document.getElementById("loginPassword").value;
+
+    await signInWithEmailAndPassword(
+      auth,
+      email,
+      senha
+    );
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert("Erro ao fazer login.");
+  }
+}
+
+/* =====================================================
+   REGISTER
+===================================================== */
+
+async function register() {
+
+  try {
+
+    const nome =
+      document.getElementById("regName").value;
+
+    const email =
+      document.getElementById("regEmail").value.trim();
+
+    const senha =
+      document.getElementById("regPassword").value;
+
+    const perfil =
+      document.getElementById("regRole").value;
+
+    if (!email.endsWith("@kuhn.com")) {
+
+      alert(
+        "Use um e-mail corporativo @kuhn.com"
+      );
+
       return;
     }
 
-    try {
-      const credencial = await createUserWithEmailAndPassword(auth, email, senha);
-      const uid = credencial.user.uid;
+    const cred =
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        senha
+      );
 
-      await setDoc(doc(db, "users", uid), {
+    await setDoc(
+      doc(db, "users", cred.user.uid),
+      {
         nome,
         email,
-        perfil,
-        telefone: telefone || "",
-        teams: teams || ""
-      });
-
-      alert("✅ Usuário cadastrado!");
-      showLogin();
-      document.getElementById("regName").value = "";
-      document.getElementById("regEmail").value = "";
-      document.getElementById("regPassword").value = "";
-      document.getElementById("regTelefone").value = "";
-      document.getElementById("regTeams").value = "";
-
-    } catch (erro) {
-      if (erro.code === "auth/email-already-in-use") {
-        alert("❌ Este e-mail já está cadastrado.");
-      } else if (erro.code === "auth/weak-password") {
-        alert("❌ Senha deve ter pelo menos 6 caracteres.");
-      } else {
-        alert("❌ Erro: " + erro.message);
+        telefone: "",
+        teams: "",
+        perfil
       }
+    );
+
+    alert("✅ Cadastro realizado!");
+
+    window.showLogin();
+
+  } catch (err) {
+
+    console.error(err);
+
+    if (err.code === "auth/email-already-in-use") {
+
+      alert("E-mail já cadastrado.");
+
+    } else if (
+      err.code === "auth/weak-password"
+    ) {
+
+      alert(
+        "A senha deve ter pelo menos 6 caracteres."
+      );
+
+    } else {
+
+      alert("Erro ao cadastrar.");
     }
   }
+}
 
-  async function login() {
-    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
-    const senha = document.getElementById("loginPassword").value;
+/* =====================================================
+   LOGOUT
+===================================================== */
 
-    if (!email || !senha) {
-      alert("❌ Preencha email e senha!");
-      return;
-    }
+window.logout = async () => {
 
-    try {
-      const credencial = await signInWithEmailAndPassword(auth, email, senha);
-      console.log("✅ Login bem-sucedido:", credencial.user.email);
-      usuarioLogadoUID = credencial.user.uid;
-      await carregarPerfil(credencial.user.uid);
-
-    } catch (erro) {
-      console.error("❌ Erro no login:", erro);
-      alert("❌ Email ou senha inválidos");
-    }
-  }
-
- async function carregarPerfil(uid) {
   try {
-    const snap = await getDoc(doc(db, "users", uid));
+
+    await signOut(auth);
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert("Erro ao sair.");
+  }
+};
+
+/* =====================================================
+   PERFIL
+===================================================== */
+
+window.abrirConfiguracoes = () => {
+
+  esconderTudo();
+
+  if (settingsView) {
+    settingsView.classList.remove("hidden");
+  }
+
+  if (!window.dadosUsuarioAtual) return;
+
+  document.getElementById("meuEmail").value =
+    window.dadosUsuarioAtual.email || "";
+
+  document.getElementById("meuTelefone").value =
+    window.dadosUsuarioAtual.telefone || "";
+
+  document.getElementById("meuTeams").value =
+    window.dadosUsuarioAtual.teams || "";
+};
+
+window.carregarPerfil = async uid => {
+
+  try {
+
+    const snap =
+      await getDoc(doc(db, "users", uid));
 
     if (!snap.exists()) {
-      alert("❌ Perfil não encontrado");
+
+      alert("Usuário não encontrado.");
+
       return;
     }
 
     const dados = snap.data();
-    console.log("✅ Dados do usuário:", dados);
-    
+
+    window.dadosUsuarioAtual = dados;
+
     esconderTudo();
 
-    if (dados.perfil === "admin") {
-      adminView.classList.remove("hidden");
-      
-      // ✅ Verifica se a tabela já foi preenchida
-      const tbody = document.querySelector("#tabelaTecnicos tbody");
-      if (tbody && tbody.innerHTML === "") {
-        carregarDashboardAdmin();
-      }
-    } else {
-      techView.classList.remove("hidden");
-      await carregarChecklist(uid);
+    if (headerPerfil) {
+      headerPerfil.textContent =
+        `${dados.perfil} ▾`;
     }
 
-  } catch (erro) {
-    console.error("❌ Erro ao carregar perfil:", erro);
-    alert("❌ Erro ao carregar perfil");
+    montarMenuPorPerfil(dados.perfil);
+
+    if (dados.perfil === "admin") {
+
+      if (adminView) {
+        adminView.classList.remove("hidden");
+      }
+
+      await carregarDashboardAdmin();
+
+      return;
+    }
+
+    if (techView) {
+      techView.classList.remove("hidden");
+    }
+
+    if (!checklistGerado) {
+
+      gerarChecklist();
+
+      checklistGerado = true;
+    }
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert("Erro ao carregar perfil.");
+  }
+};
+
+/* =====================================================
+   MENU ADMIN
+===================================================== */
+
+function montarMenuPorPerfil(perfil) {
+
+  if (!menuDropdown) return;
+
+  menuDropdown.innerHTML = "";
+
+  if (perfil === "admin") {
+
+    menuDropdown.innerHTML += `
+      <button onclick="exportarExcelProblemasPorTecnico()">
+        📊 Exportar Excel
+      </button>
+    `;
   }
 }
 
-  async function logout() {
-    try {
-      await signOut(auth);
-      console.log("✅ Usuário deslogado");
-      usuarioLogadoUID = null;
-      showLogin();
-      document.getElementById("loginEmail").value = "";
-      document.getElementById("loginPassword").value = "";
-    } catch (erro) {
-      console.error("❌ Erro ao deslogar:", erro);
-    }
-  }
+/* =====================================================
+   CHECKLIST
+===================================================== */
 
-  // ===== CHECKLIST COLAPSÁVEL =====
+function atualizarFotos(index) {
 
-  function getStatusIcon(estaComTecnico, boasCondicoes) {
-    if (!estaComTecnico || !boasCondicoes) {
-      return "⚠️";
-    }
-    return "✅";
-  }
+  const reposicao =
+    document.getElementById(`rep_${index}`)?.checked || false;
 
-  function gerarChecklist() {
-    if (!checklistForm) {
-      console.error("❌ checklistForm não existe");
-      return;
-    }
+  const box =
+    document.getElementById(`fotos_${index}`);
 
-    checklistForm.innerHTML = "";
+  if (!box) return;
 
-    ferramentas.forEach((ferramenta, index) => {
-      const defaultOk = true;
+  box.classList.toggle("hidden", !reposicao);
+}
 
-      checklistForm.innerHTML += `
-        <details class="ferramenta-item">
-          <summary class="ferramenta-header">
-            <span class="status-icon" id="status_${index}">✅</span>
-            <span class="ferramenta-nome">${ferramenta}</span>
-          </summary>
+/* =====================================================
+   GERAR CHECKLIST
+===================================================== */
 
-          <div class="ferramenta-detalhes">
-            <div class="pergunta-grupo">
-              <p>Está com o técnico?</p>
+function gerarChecklist() {
+
+  const form =
+    document.getElementById("checklistForm");
+
+  if (!form) return;
+
+  form.innerHTML = "";
+
+  ferramentas.forEach((f, i) => {
+
+    const html = `
+
+      <details class="ferramenta-item">
+
+        <summary class="ferramenta-header">
+          ${f}
+        </summary>
+
+        <div class="ferramenta-detalhes">
+
+          <div class="pergunta-grupo">
+
+            <p>Está com o técnico?</p>
+
+            <div class="opcoes-horizontal">
+
               <label>
-                <input type="radio" name="posse_${index}" value="sim" ${defaultOk ? 'checked' : ''}> Sim
+                <input
+                  type="radio"
+                  name="posse_${i}"
+                  value="sim"
+                  checked
+                >
+                Sim
               </label>
+
               <label>
-                <input type="radio" name="posse_${index}" value="nao"> Não
+                <input
+                  type="radio"
+                  name="posse_${i}"
+                  value="nao"
+                >
+                Não
               </label>
+
             </div>
 
-            <div class="pergunta-grupo" id="motivo-grupo_${index}" style="display: ${defaultOk ? 'none' : 'block'}">
-              <input
-                type="text"
-                placeholder="Motivo da ausência"
-                id="motivo_${index}"
-              >
-            </div>
-
-            <div class="pergunta-grupo">
-              <p>Está em boas condições?</p>
-              <label>
-                <input type="radio" name="condicao_${index}" value="sim" ${defaultOk ? 'checked' : ''}> Sim
-              </label>
-              <label>
-                <input type="radio" name="condicao_${index}" value="nao"> Não
-              </label>
-            </div>
-
-            <div class="pergunta-grupo">
-              <label>
-                <input type="checkbox" id="reposicao_${index}">
-                Precisa de reposição
-              </label>
-            </div>
           </div>
-        </details>
-      `;
-    });
 
-    ferramentas.forEach((ferramenta, index) => {
-      const posseSim = document.querySelector(`input[name="posse_${index}"][value="sim"]`);
-      const posseNao = document.querySelector(`input[name="posse_${index}"][value="nao"]`);
-      const condicaoSim = document.querySelector(`input[name="condicao_${index}"][value="sim"]`);
-      const condicaoNao = document.querySelector(`input[name="condicao_${index}"][value="nao"]`);
-      const motivoGrupo = document.getElementById(`motivo-grupo_${index}`);
-      const statusIcon = document.getElementById(`status_${index}`);
+          <div class="pergunta-grupo">
 
-      function atualizarStatus() {
-        const estaComTecnico = document.querySelector(`input[name="posse_${index}"]:checked`)?.value === "sim";
-        const boasCondicoes = document.querySelector(`input[name="condicao_${index}"]:checked`)?.value === "sim";
-        
-        statusIcon.innerText = getStatusIcon(estaComTecnico, boasCondicoes);
+            <p>Está em boas condições?</p>
 
-        if (!estaComTecnico) {
-          motivoGrupo.style.display = "block";
-        } else {
-          motivoGrupo.style.display = "none";
-        }
-      }
+            <div class="opcoes-horizontal">
 
-      posseSim?.addEventListener("change", atualizarStatus);
-      posseNao?.addEventListener("change", atualizarStatus);
-      condicaoSim?.addEventListener("change", atualizarStatus);
-      condicaoNao?.addEventListener("change", atualizarStatus);
-    });
-  }
+              <label>
+                <input
+                  type="radio"
+                  name="cond_${i}"
+                  value="sim"
+                  checked
+                >
+                Boa
+              </label>
 
-  async function carregarChecklist(uid) {
-    gerarChecklist();
+              <label>
+                <input
+                  type="radio"
+                  name="cond_${i}"
+                  value="nao"
+                >
+                Ruim
+              </label>
 
-    if (mesReferencia) {
-      mesReferencia.innerText = mesAno;
+            </div>
+
+          </div>
+
+         <div class="pergunta-grupo">
+
+  <p>Precisa de reposição?</p>
+
+  <label class="checkbox-linha">
+    <input
+      type="checkbox"
+      id="rep_${i}" >
+    Sim
+    </label>
+
+        </div>
+
+          <div class="pergunta-grupo">
+
+            <input
+              type="text"
+              id="mot_${i}"
+              placeholder="Motivo"
+            >
+
+          </div>
+
+          <div
+            class="pergunta-grupo fotos-grupo hidden"
+            id="fotos_${i}"
+          >
+
+            <p>📸 Adicione fotos</p>
+
+            <input
+              type="file"
+              id="foto_${i}_1"
+              accept="image/*"
+            >
+
+            <img
+              id="preview_${i}_1"
+              class="preview-foto hidden"
+            >
+
+            <input
+              type="file"
+              id="foto_${i}_2"
+              accept="image/*"
+            >
+
+            <img
+              id="preview_${i}_2"
+              class="preview-foto hidden"
+            >
+
+          </div>
+
+        </div>
+
+      </details>
+    `;
+
+    form.insertAdjacentHTML(
+      "beforeend",
+      html
+    );
+
+    const rep =
+      document.getElementById(`rep_${i}`);
+
+    const foto1 =
+      document.getElementById(`foto_${i}_1`);
+
+    const foto2 =
+      document.getElementById(`foto_${i}_2`);
+
+    if (rep) {
+
+      rep.addEventListener(
+        "change",
+        () => atualizarFotos(i)
+      );
     }
+
+    if (foto1) {
+
+      foto1.addEventListener(
+        "change",
+        () => mostrarPreview(
+          foto1,
+          `preview_${i}_1`
+        )
+      );
+    }
+
+    if (foto2) {
+
+      foto2.addEventListener(
+        "change",
+        () => mostrarPreview(
+          foto2,
+          `preview_${i}_2`
+        )
+      );
+    }
+  });
+}
+
+/* =====================================================
+   PREVIEW
+===================================================== */
+
+function mostrarPreview(
+  input,
+  previewId
+) {
+
+  const file =
+    input.files[0];
+
+  const img =
+    document.getElementById(previewId);
+
+  if (!file || !img) return;
+
+  img.src =
+    URL.createObjectURL(file);
+
+  img.classList.remove("hidden");
+}
+
+/* =====================================================
+   UPLOAD
+===================================================== */
+
+async function uploadFotosChecklist(
+  uid,
+  index,
+  files
+) {
+
+  const urls = [];
+
+  const IMG_API_KEY =
+    "1330ec2db0fdff7ca29b67c8c686af05";
+
+  for (let i = 0; i < files.length; i++) {
+
+    if (!files[i]) continue;
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "image",
+      files[i]
+    );
 
     try {
-      const q = query(
-        collection(db, "checklists"),
-        where("uid", "==", uid),
-        where("mesAno", "==", mesAno)
-      );
 
-      const querySnapshot = await getDocs(q);
+      const response =
+        await fetch(
+          `https://api.imgbb.com/1/upload?key=${IMG_API_KEY}`,
+          {
+            method: "POST",
+            body: formData
+          }
+        );
 
-      if (!querySnapshot.empty) {
-        console.log("✅ Usuário já respondeu este mês");
-        if (avisoJaRespondeu) {
-          avisoJaRespondeu.classList.remove("hidden");
-        }
-        preencherChecklistAnterior(querySnapshot.docs[0].data());
+      const data =
+        await response.json();
+
+      if (data.success) {
+
+        urls.push(
+          data.data.url
+        );
+
+      } else {
+
+        console.error(data);
       }
-    } catch (erro) {
-      console.error("❌ Erro ao carregar checklist anterior:", erro);
+
+    } catch (error) {
+
+      console.error(error);
     }
   }
 
-  function preencherChecklistAnterior(dados) {
-    dados.respostas.forEach((resposta, index) => {
-      try {
-        if (resposta.estaComTecnico) {
-          const elem = document.querySelector(`input[name="posse_${index}"][value="sim"]`);
-          if (elem) elem.checked = true;
-        } else {
-          const elem = document.querySelector(`input[name="posse_${index}"][value="nao"]`);
-          if (elem) elem.checked = true;
-        }
+  return urls;
+}
 
-        const motivoElem = document.getElementById(`motivo_${index}`);
-        if (motivoElem) {
-          motivoElem.value = resposta.motivoAusencia || "";
-        }
+/* =====================================================
+   ENVIAR CHECKLIST
+===================================================== */
 
-        if (resposta.boasCondicoes) {
-          const elem = document.querySelector(`input[name="condicao_${index}"][value="sim"]`);
-          if (elem) elem.checked = true;
-        } else {
-          const elem = document.querySelector(`input[name="condicao_${index}"][value="nao"]`);
-          if (elem) elem.checked = true;
-        }
+async function enviarChecklist() {
 
-        const reposicaoElem = document.getElementById(`reposicao_${index}`);
-        if (reposicaoElem) {
-          reposicaoElem.checked = resposta.precisaReposicao || false;
-        }
+  try {
 
-        const statusIcon = document.getElementById(`status_${index}`);
-        if (statusIcon) {
-          statusIcon.innerText = getStatusIcon(resposta.estaComTecnico, resposta.boasCondicoes);
-        }
+    const checklist = [];
 
-      } catch (e) {
-        console.warn(`⚠️ Erro ao preencher ferramenta ${index}:`, e);
-      }
-    });
-  }
+    for (let i = 0; i < ferramentas.length; i++) {
 
-  async function enviarChecklist() {
-    if (!usuarioLogadoUID) {
-      alert("❌ Erro: Usuário não identificado");
-      return;
-    }
-
-    const respostas = [];
-
-    ferramentas.forEach((ferramenta, index) => {
       const estaComTecnico =
-        document.querySelector(`input[name="posse_${index}"]:checked`)?.value === "sim";
+        document.querySelector(
+          `input[name="posse_${i}"]:checked`
+        )?.value === "sim";
 
       const boasCondicoes =
-        document.querySelector(`input[name="condicao_${index}"]:checked`)?.value === "sim";
+        document.querySelector(
+          `input[name="cond_${i}"]:checked`
+        )?.value === "sim";
 
-      respostas.push({
-        ferramenta,
-        estaComTecnico,
-        motivoAusencia: document.getElementById(`motivo_${index}`)?.value || "",
-        boasCondicoes,
-        precisaReposicao: document.getElementById(`reposicao_${index}`)?.checked || false
-      });
-    });
+      const precisaReposicao =
+        document.getElementById(`rep_${i}`)?.checked || false;
 
-    try {
-      const checklistRef = doc(db, "checklists", `${usuarioLogadoUID}_${mesAno}`);
-      await setDoc(checklistRef, {
-        uid: usuarioLogadoUID,
-        mesAno,
-        respostas,
-        dataCriacao: new Date().toISOString(),
-        dataAtualizacao: new Date().toISOString()
-      });
+      const motivo =
+        document.getElementById(`mot_${i}`)?.value || "";
 
-      console.log("✅ Checklist salvo com sucesso!");
-      alert("✅ Checklist do mês registrado com sucesso!");
-    } catch (erro) {
-      console.error("❌ Erro ao salvar checklist:", erro);
-      alert("❌ Erro ao salvar checklist: " + erro.message);
-    }
-  }
+      let fotos = [];
 
-  // ===== DASHBOARD ADMIN =====
+      if (precisaReposicao) {
 
-  async function carregarDashboardAdmin() {
-    console.log("📊 Carregando dashboard admin...");
-    
-    const tbody = document.querySelector("#tabelaTecnicos tbody");
-    if (!tbody) {
-      console.error("❌ Tabela de técnicos não encontrada");
-      return;
-    }
+        const f1 =
+          document.getElementById(`foto_${i}_1`)?.files[0];
 
-    tbody.innerHTML = "";
+        const f2 =
+          document.getElementById(`foto_${i}_2`)?.files[0];
 
-    try {
-      const qUsers = query(
-        collection(db, "users"),
-        where("perfil", "==", "tecnico")
-      );
+        if (!f1 && !f2) {
 
-      const usuariosSnapshot = await getDocs(qUsers);
+          alert(
+            `❌ A ferramenta "${ferramentas[i]}" precisa de foto.`
+          );
 
-      if (usuariosSnapshot.empty) {
-        tbody.innerHTML = "<tr><td colspan='2'>Nenhum técnico cadastrado</td></tr>";
-        return;
+          return;
+        }
+
+        fotos =
+          await uploadFotosChecklist(
+            window.usuarioLogadoUID,
+            i,
+            [f1, f2]
+          );
       }
 
-      for (const userDoc of usuariosSnapshot.docs) {
-        const tecnico = userDoc.data();
-        const uid = userDoc.id;
+      checklist.push({
+        ferramenta: ferramentas[i],
+        estaComTecnico,
+        boasCondicoes,
+        precisaReposicao,
+        motivo,
+        fotos
+      });
+    }
 
-        const checklistRef = doc(db, "checklists", `${uid}_${mesAno}`);
-        const checklistSnap = await getDoc(checklistRef);
+    await setDoc(
+      doc(
+        db,
+        "checklists",
+        `${window.usuarioLogadoUID}_${mesAno}`
+      ),
+      {
+        uid: window.usuarioLogadoUID,
+        checklist,
+        criadoEm: new Date(),
+        mesAno
+      }
+    );
 
-        let status = "❌ Pendente";
-        let statusClass = "status-pendente";
+    alert("✅ Checklist enviado!");
 
-        if (checklistSnap.exists()) {
-          const respostas = checklistSnap.data().respostas;
+  } catch (err) {
 
-          const temProblema = respostas.some(r =>
+    console.error(err);
+
+    alert("Erro ao enviar checklist.");
+  }
+}
+
+/* =====================================================
+   DASHBOARD ADMIN
+===================================================== */
+
+async function carregarDashboardAdmin() {
+
+  const tbody =
+    document.querySelector(
+      "#tabelaTecnicos tbody"
+    );
+
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  const users =
+    await getDocs(
+      collection(db, "users")
+    );
+
+  let ok = 0;
+  let problemas = 0;
+  let pendentes = 0;
+
+  for (const u of users.docs) {
+
+    const userData =
+      u.data();
+
+    if (
+      userData.perfil !== "tecnico"
+    ) continue;
+
+    const chk =
+      await getDoc(
+        doc(
+          db,
+          "checklists",
+          `${u.id}_${mesAno}`
+        )
+      );
+
+    let status = "Pendente";
+    let classe = "pendente";
+
+    if (chk.exists()) {
+
+      const checklist =
+        chk.data().checklist;
+
+      const temProblema =
+        checklist.some(r =>
+          !r.estaComTecnico ||
+          !r.boasCondicoes ||
+          r.precisaReposicao
+        );
+
+      status =
+        temProblema
+          ? "Problemas"
+          : "OK";
+
+      classe =
+        temProblema
+          ? "problema"
+          : "ok";
+    }
+
+    if (status === "OK") ok++;
+    if (status === "Problemas") problemas++;
+    if (status === "Pendente") pendentes++;
+
+    const tr =
+      document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>
+
+        <button
+          class="btn-tecnico"
+          onclick="abrirDetalhesTecnico(
+            '${userData.nome}',
+            '${userData.email || ""}',
+            '${userData.telefone || ""}',
+            '${userData.teams || ""}'
+          )"
+        >
+          ${userData.nome}
+        </button>
+
+      </td>
+
+      <td class="${classe}">
+        ${status}
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  }
+
+  const countOk =
+    document.getElementById("countOk");
+
+  const countProblemas =
+    document.getElementById("countProblemas");
+
+  const countPendente =
+    document.getElementById("countPendente");
+
+  if (countOk)
+    countOk.textContent = ok;
+
+  if (countProblemas)
+    countProblemas.textContent = problemas;
+
+  if (countPendente)
+    countPendente.textContent = pendentes;
+}
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+window.abrirDetalhesTecnico = function (
+  nome,
+  email,
+  telefone,
+  teams
+) {
+
+  const modal =
+    document.getElementById("modalTecnico");
+
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+
+  document.getElementById("modalEmail").value =
+    email;
+
+  document.getElementById("modalTelefone").value =
+    telefone;
+
+  document.getElementById("modalTeams").value =
+    teams;
+};
+
+window.fecharModalTecnico = function () {
+
+  const modal =
+    document.getElementById("modalTecnico");
+
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+};
+
+/* =====================================================
+   EXCEL
+===================================================== */
+
+window.exportarExcelProblemasPorTecnico =
+  async function () {
+
+    try {
+
+      const wb =
+        XLSX.utils.book_new();
+
+      const users =
+        await getDocs(
+          collection(db, "users")
+        );
+
+      let possuiDados = false;
+
+      for (const u of users.docs) {
+
+        const userData =
+          u.data();
+
+        if (
+          userData.perfil !== "tecnico"
+        ) continue;
+
+        const chk =
+          await getDoc(
+            doc(
+              db,
+              "checklists",
+              `${u.id}_${mesAno}`
+            )
+          );
+
+        if (!chk.exists()) continue;
+
+        const checklist =
+          chk.data().checklist;
+
+        const problemas =
+          checklist.filter(r =>
             !r.estaComTecnico ||
             !r.boasCondicoes ||
             r.precisaReposicao
           );
 
-          status = temProblema ? "⚠️ Respondido com problemas" : "✅ OK";
-          statusClass = temProblema ? "status-problemas" : "status-ok";
-        }
+        if (
+          problemas.length === 0
+        ) continue;
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td style="cursor:pointer; color:blue; text-decoration:underline;"
-              onclick="window.abrirDetalhesTecnico('${uid}')">
-            ${tecnico.nome}
-          </td>
-          <td class="${statusClass}">${status}</td>
-        `;
+        possuiDados = true;
 
-        tbody.appendChild(tr);
+        const linhas =
+          problemas.map(p => ({
+            Ferramenta: p.ferramenta,
+            "Com Técnico":
+              p.estaComTecnico
+                ? "Sim"
+                : "Não",
+            Condição:
+              p.boasCondicoes
+                ? "Boa"
+                : "Ruim",
+            Reposição:
+              p.precisaReposicao
+                ? "Sim"
+                : "Não",
+            Motivo:
+              p.motivo || "",
+            "Foto 1":
+              p.fotos?.[0] ||
+              "Sem foto",
+            "Foto 2":
+              p.fotos?.[1] ||
+              "Sem foto"
+          }));
+
+        const ws =
+          XLSX.utils.json_to_sheet(
+            linhas
+          );
+
+        XLSX.utils.book_append_sheet(
+          wb,
+          ws,
+          userData.nome.substring(
+            0,
+            30
+          )
+        );
       }
 
-    } catch (erro) {
-      console.error("❌ Erro ao carregar dashboard:", erro);
-      alert("❌ Erro ao carregar dashboard");
-    }
-  }
+      if (!possuiDados) {
 
-  async function exportarExcelProblemasPorTecnico() {
-    console.log("📊 Exportando Excel...");
-
-    const workbook = XLSX.utils.book_new();
-
-    try {
-      const qUsers = query(
-        collection(db, "users"),
-        where("perfil", "==", "tecnico")
-      );
-
-      const usuariosSnapshot = await getDocs(qUsers);
-
-      for (const userDoc of usuariosSnapshot.docs) {
-        const uid = userDoc.id;
-        const tecnico = userDoc.data();
-
-        const qChecklist = query(
-          collection(db, "checklists"),
-          where("uid", "==", uid),
-          where("mesAno", "==", mesAno)
+        alert(
+          "Nenhum problema encontrado."
         );
 
-        const checklistSnap = await getDocs(qChecklist);
-
-        const linhas = [];
-
-        checklistSnap.forEach(checklistDoc => {
-          const dados = checklistDoc.data();
-
-          dados.respostas.forEach(r => {
-            if (
-              !r.estaComTecnico ||
-              !r.boasCondicoes ||
-              r.precisaReposicao
-            ) {
-              linhas.push({
-                Ferramenta: r.ferramenta,
-                "Com Técnico": r.estaComTecnico ? "Sim" : "Não",
-                "Boas Condições": r.boasCondicoes ? "Sim" : "Não",
-                "Precisa Reposição": r.precisaReposicao ? "Sim" : "Não",
-                Motivo: r.motivoAusencia || "-",
-                "Mês/Ano": dados.mesAno
-              });
-            }
-          });
-        });
-
-        if (linhas.length > 0) {
-          const worksheet = XLSX.utils.json_to_sheet(linhas);
-          XLSX.utils.book_append_sheet(workbook, worksheet, tecnico.nome);
-        }
+        return;
       }
 
       XLSX.writeFile(
-        workbook,
-        `Relatorio_Ferramentas_${mesAno}.xlsx`
+        wb,
+        `Relatorio_${mesAno}.xlsx`
       );
 
-      alert("✅ Excel exportado com sucesso!");
+    } catch (err) {
 
-    } catch (erro) {
-      console.error("❌ Erro ao exportar Excel:", erro);
-      alert("❌ Erro ao exportar: " + erro.message);
+      console.error(err);
+
+      alert(
+        "Erro ao exportar Excel."
+      );
     }
-  }
-
-  // ✅ Expor funções globalmente
-  window.abrirDetalhesTecnico = abrirDetalhesTecnico;
-  window.fecharDetalhesTecnico = fecharDetalhesTecnico;
-
- async function abrirDetalhesTecnico(uid) {
-  console.log("👁️ Abrindo detalhes do técnico:", uid);
-
-  const detalhes = document.getElementById("detalhesTecnico");
-
-  if (!detalhes) {
-    console.error("❌ Elemento detalhesTecnico não encontrado");
-    return;
-  }
-
-  const userSnap = await getDoc(doc(db, "users", uid));
-
-  if (!userSnap.exists()) {
-    console.warn("⚠️ Técnico não encontrado");
-    return;
-  }
-
-  const tecnico = userSnap.data();
-
-  document.getElementById("detNome").innerText = tecnico.nome;
-  document.getElementById("detEmail").innerText = tecnico.email || "-";
-  document.getElementById("detTelefone").innerText = tecnico.telefone || "-";
-  document.getElementById("detTeams").innerText = tecnico.teams || "-";
-
-  detalhes.classList.remove("hidden");
-}
-  function fecharDetalhesTecnico() {
-    document.getElementById("detalhesTecnico").classList.add("hidden");
-  }
-});
+  };
