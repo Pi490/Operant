@@ -31,11 +31,6 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    console.log("✅ Login persistente ativo:", user.email);
-  }
-});
 
 export {
   createUserWithEmailAndPassword,
@@ -50,3 +45,6 @@ export {
   where,
   getDocs
 };
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+export const storage = getStorage(app);
