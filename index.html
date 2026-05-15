@@ -3,30 +3,48 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gestão de Ferramentas</title>
+
   <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
 
-<header id="mainHeader" class="hidden">
+<header id="mainHeader">
 
   <div class="header-inner">
 
-    <strong class="header-title">
-      Gestão de Ferramentas
-    </strong>
+    <div class="logo-area">
+      <img src="./img/logo.png" alt="Logo" class="logo-img">
+      <strong class="header-title">
+        Gestão de Ferramentas
+      </strong>
+    </div>
 
     <div class="header-right">
 
-      <!-- PERFIL -->
+      <span
+        id="loginLink"
+        onclick="abrirLogin()"
+        class="login-link"
+      >
+        Login/Cadastrar
+      </span>
+
       <div class="perfil-wrapper">
 
-        <span id="headerPerfil" class="header-perfil">
+        <span
+          id="headerPerfil"
+          class="header-perfil hidden"
+        >
           perfil ▾
         </span>
 
-        <div id="perfilMenu" class="perfil-menu hidden">
+        <div
+          id="perfilMenu"
+          class="perfil-menu hidden"
+        >
 
           <button onclick="abrirConfiguracoes()">
             Configurações
@@ -40,14 +58,19 @@
 
       </div>
 
-      <!-- MENU -->
       <div class="menu-wrapper">
 
-        <button id="menuToggle" class="menu-btn">
+        <button
+          id="menuToggle"
+          class="menu-btn"
+        >
           ⋮
         </button>
 
-        <div id="menuDropdown" class="menu-dropdown hidden"></div>
+        <div
+          id="menuDropdown"
+          class="menu-dropdown hidden"
+        ></div>
 
       </div>
 
@@ -58,83 +81,221 @@
 </header>
 
 <div id="app">
+   <div id="maletasView" class="card hidden">
 
-  <!-- LOGIN -->
-  <div id="loginView" class="card">
+  <h2>Maletas</h2>
 
-    <h2>Login</h2>
+  <div id="listaTecnicosMaletas"></div>
 
-    <input
-      id="loginEmail"
-      type="email"
-      placeholder="email@empresa.com"
-    >
+  <div id="listaMesesMaletas"></div>
 
-    <input
-      id="loginPassword"
-      type="password"
-      placeholder="Senha"
-    >
+  <div id="fotosMaleta"></div>
 
-    <button id="btnLogin">
-      Entrar
-    </button>
+</div>
 
-    <p class="link" id="btnShowRegister">
-      Criar conta
+  <!-- HOME -->
+  <div id="homeView" class="card">
+
+    <h2>Bem-Vindo!</h2>
+
+    <p>
+    Este ambiente foi desenvolvido com o propósito de assegurar o controle, a padronização,
+    a organização e a gestão eficiente das ferramentas utilizadas pelos técnicos de campo, 
+    promovendo maior governança e rastreabilidade dos processos.
+    </p>
+
+    <p>
+      Técnicos de Campo: acessem a plataforma, realizem o login
+      e efetuem o preenchimento do checklist mensal, 
+      conforme as diretrizes operacionais estabelecidas.
+    </p>
+
+    <p>
+      Administradores: acompanhem a execução dos checklists por meio do sistema,
+      garantindo a conformidade das informações, e realizem a exportação de relatórios estruturados
+      para suporte à análise gerencial e à tomada de decisão.
     </p>
 
   </div>
 
-  <!-- CADASTRO -->
-  <div id="registerView" class="card hidden">
+  <!-- LOGIN MODAL -->
+  <div id="loginModal" class="modal hidden">
 
-    <h2>Cadastro</h2>
+    <div class="modal-content">
 
-    <input
-      id="regName"
-      placeholder="Nome completo"
-    >
+      <span
+        class="modal-close"
+        onclick="fecharLogin()"
+      >
+        ×
+      </span>
 
-    <input
-      id="regEmail"
-      type="email"
-      placeholder="Email"
-    >
+      <!-- LOGIN -->
+      <div id="loginForm">
 
-    <input
-      id="regPassword"
-      type="password"
-      placeholder="Senha"
-    >
+        <h2>Login</h2>
 
-    <select id="regRole">
-      <option value="tecnico">Técnico</option>
-      <option value="admin">Administrador</option>
-    </select>
+        <input
+          id="loginEmail"
+          type="email"
+          placeholder="email@empresa.com"
+        >
 
-    <button id="btnRegister">
-      Cadastrar
-    </button>
+        <input
+          id="loginPassword"
+          type="password"
+          placeholder="Senha"
+        >
 
-    <p class="link" id="btnShowLogin">
-      Voltar
-    </p>
+        <button id="btnLogin">
+          Entrar
+        </button>
+
+        <p
+          class="link"
+          onclick="mostrarCadastro()"
+        >
+          Criar conta
+        </p>
+
+      </div>
+
+      <!-- CADASTRO -->
+      <div id="registerForm" class="hidden">
+
+        <h2>Cadastro</h2>
+
+        <input
+          id="regName"
+          placeholder="Nome completo"
+        >
+
+        <input
+          id="regEmail"
+          type="email"
+          placeholder="Email"
+        >
+
+        <input
+          id="regTelefone"
+          type="tel"
+          placeholder="Telefone"
+        >
+
+        <input
+          id="regTeams"
+          type="text"
+          placeholder="Link do Teams"
+        >
+
+        <input
+          id="regPassword"
+          type="password"
+          placeholder="Senha"
+        >
+
+        <input
+          id="regConfirmPassword"
+          type="password"
+          placeholder="Confirmar senha"
+        >
+
+        <select id="regRole">
+
+          <option value="tecnico">
+            Técnico
+          </option>
+
+          <option value="admin">
+            Administrador
+          </option>
+
+        </select>
+
+        <small
+          id="erroSenha"
+          style="color:rgb(212, 0, 0); display:none;"
+        >
+          As senhas não coincidem
+        </small>
+
+        <button id="btnRegister">
+          Cadastrar
+        </button>
+
+        <p
+          class="link"
+          onclick="mostrarLogin()"
+        >
+          Voltar para login
+        </p>
+
+      </div>
+
+    </div>
 
   </div>
 
   <!-- TÉCNICO -->
+ <div id="regrasTecnicoView" class="card hidden">
+
+   <h2>Diretrizes para Técnicos de Campo</h2>
+      <ul>
+        <li>
+          O checklist mensal deverá ser preenchido até o dia 5 de cada mês, conforme o prazo estabelecido.
+        </li>
+        <li>
+          É obrigatório o envio de registro fotográfico da caixa de ferramentas devidamente organizada, com anexo no checklist para fins de validação.
+        </li>
+        <li>
+          Em caso de ocorrências, inconsistências ou irregularidades, estas deverão ser descritas de forma detalhada no campo de observações.
+        </li>
+        <li>
+          O não cumprimento do preenchimento do checklist dentro do prazo poderá impactar o processo de reposição de ferramentas, ocasionando possíveis atrasos.
+        </li>
+      </ul>
+          </ul>
+  </div>
   <div id="techView" class="card hidden">
 
     <h2>Checklist Mensal</h2>
 
-    <div id="avisoJaRespondeu" class="aviso hidden">
+    <div
+      id="avisoJaRespondeu"
+      class="aviso hidden"
+    >
       ⚠️ Você já respondeu o checklist deste mês.
     </div>
 
-    <form id="checklistForm"></form>
+    <form
+      id="checklistForm"
+      onsubmit="return false;"
+    ></form>
 
-    <button id="btnEnviarChecklist">
+    <div
+      id="caixaGrupo"
+      class="pergunta-grupo hidden"
+    >
+
+      <p>📦 Foto da caixa organizada</p>
+
+      <input
+        type="file"
+        id="foto_caixa"
+        accept="image/*"
+      >
+
+      <img
+        id="preview_caixa"
+        class="preview-foto hidden"
+      >
+
+    </div>
+
+    <button
+      id="btnEnviarChecklist"
+      type="button"
+    >
       Enviar checklist do mês
     </button>
 
@@ -153,7 +314,6 @@
         type="email"
         id="meuEmail"
         readonly
-        style="background:#eee;"
       >
 
       <label>Telefone:</label>
@@ -161,7 +321,6 @@
       <input
         type="text"
         id="meuTelefone"
-        placeholder="(41) 99999-9999"
       >
 
       <label>Teams:</label>
@@ -169,7 +328,6 @@
       <input
         type="text"
         id="meuTeams"
-        placeholder="Link do Teams"
       >
 
       <div class="button-group">
@@ -211,13 +369,19 @@
       <strong id="countPendente">0</strong>
     </p>
 
-    <table id="tabelaTecnicos" border="1" width="100%">
+    <table
+      id="tabelaTecnicos"
+      border="1"
+      width="100%"
+    >
 
       <thead>
+
         <tr>
           <th>Técnico</th>
           <th>Status</th>
         </tr>
+
       </thead>
 
       <tbody></tbody>
@@ -227,13 +391,25 @@
     <button id="btnExportarExcel">
       📊 Exportar Excel
     </button>
-
   </div>
+  <div id="regrasView" class="card hidden">
 
+ <h2>Diretrizes do Sistema</h2>
+
+  <ul>
+    <li>O preenchimento do checklist mensal pelos técnicos de campo é obrigatório, conforme cronograma estabelecido.</li>
+    <li>O envio de registros fotográficos é obrigatório em casos de ocorrências, irregularidades ou não conformidades identificadas.</li>
+    <li>Os administradores são responsáveis pelo acompanhamento contínuo dos registros e pelo encerramento mensal dos ciclos no sistema.</li>
+  </ul>
+</div>
 </div>
 
-<!-- MODAL -->
-<div id="modalTecnico" class="modal hidden">
+
+<!-- MODAL TÉCNICO -->
+<div
+  id="modalTecnico"
+  class="modal hidden"
+>
 
   <div class="modal-content">
 
@@ -263,6 +439,13 @@
       readonly
     >
 
+    <a
+      id="linkTeams"
+      target="_blank"
+    >
+      Abrir Teams
+    </a>
+
     <div class="modal-actions">
 
       <button onclick="fecharModalTecnico()">
@@ -275,7 +458,7 @@
 
 </div>
 
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
 <script type="module" src="./script.js"></script>
 
