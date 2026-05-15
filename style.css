@@ -101,7 +101,7 @@ button:hover {
 
 .menu-btn {
   background: transparent;
-  color: white;
+  color: rgb(255, 255, 255);
   font-size: 20px;
   border: none;
   cursor: pointer;
@@ -300,14 +300,14 @@ button:hover {
   cursor: pointer;
 }
 
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.5);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
 }
 
 .modal.hidden{
@@ -333,13 +333,52 @@ button:hover {
   gap:10px;
   margin-top:10px;
 }
+.modal-content {
+  position: relative;
+}
 
-.btn-tecnico{
-  background:none;
-  border:none;
-  color:#0b57d0;
-  cursor:pointer;
-  font-size:15px;
+.modal-content {
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 22px;
+  color: #860707;
+  cursor: pointer;
+  user-select: none;
+}
+
+
+.btn-tecnico {
+  background: none;
+  border: none;
+  color: #0b57d0;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+/* remove seleção azul */
+.btn-tecnico:focus,
+.btn-tecnico:focus-visible,
+.btn-tecnico:active {
+  outline: none;
+  box-shadow: none;
+  background: none;
+}
+
+/* opcional: hover bonito */
+.btn-tecnico:hover {
+  text-decoration: underline;
+}
+.btn-tecnico {
+  background: transparent !important;
+}
+
+.btn-tecnico:active {
+  background: transparent !important;
 }
 
 .ok{
@@ -355,4 +394,67 @@ button:hover {
 .pendente{
   color:red;
   font-weight:bold;
+}
+
+
+.home-content {
+  max-width: 700px;
+  text-align: left;
+}
+
+.home-content h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.home-content p {
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-img {
+  width: 130px;
+}
+
+.login-link {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#listaTecnicosMaletas button {
+  margin-bottom: 10px;
+}
+#regrasTecnicoView {
+  margin-bottom: 20px;
+  border-left: 4px solid #860707;
+}
+#regrasView {
+  margin-bottom: 20px;
+  border-left: 4px solid #860707;
+}
+
+#listaTecnicosMaletas button,
+#listaMesesMaletas button {
+  display: block;
+  text-align: left;   /* ✅ alinhar texto */
+  margin: 2px 0;      /* ✅ bem juntinho */
+  padding: 0;         /* ✅ remove altura extra */
+  line-height: 1.2;   /* ✅ compacto */
+
+  background: none;
+  border: none;
+  color: #1e73ff;
+  cursor: pointer;
+}
+#listaMesesMaletas {
+  margin-left: 10px;
+}
+#maletasView {
+  text-align: left; /* ✅ joga tudo pra esquerda */
 }
