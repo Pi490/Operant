@@ -437,6 +437,7 @@ button:hover {
 #regrasView {
   margin-bottom: 20px;
   border-left: 4px solid #860707;
+
 }
 
 #listaTecnicosMaletas button,
@@ -457,4 +458,16 @@ button:hover {
 }
 #maletasView {
   text-align: left; /* ✅ joga tudo pra esquerda */
+}
+
+#homeView {
+   border-left: 4px solid #860707;
+}
+
+#regrasView ul,
+#regrasTecnicoView ul
+#homeView ul {
+  padding-left: 20px;
+  margin-bottom: 10px;
+
 }
