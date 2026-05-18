@@ -403,6 +403,7 @@ onAuthStateChanged(auth, async user => {
     if (homeView)
       homeView.classList.remove("hidden");
   }
+  montarMenuPublico();
 });
 
 /* =====================================================
@@ -649,9 +650,8 @@ if (dados.perfil === "tecnico") {
 const menuPorPerfil = {
   admin: [
     { nome: "Análise de técnicos", acao: "abrirAdmin" },
-    { nome: "Regras", acao: "abrirRegras" }, 
-    { nome: "Aprovar Compras", acao: "abrirAprovarCompras" },
     { nome: "Maletas", acao: "abrirMaletas" },
+    { nome: "Aprovar Compras", acao: "abrirAprovarCompras" },
     { nome: "Estatísticas", acao: "abrirEstatisticas" }
   ],
   tecnico: [
@@ -660,6 +660,10 @@ const menuPorPerfil = {
     { nome: "Certificados", acao: "abrirCertificados" },
   ]
 }
+const menuPublico = [
+  { nome: "Sobre a empresa", acao: "abrirSobre" },
+  { nome: "Contato", acao: "abrirContato" }
+];
 function montarMenuPorPerfil(perfil) {
 
   if (!menuDropdown) return;
@@ -1796,3 +1800,28 @@ window.abrirRegras = () => {
   const view = document.getElementById("regrasView");
   if (view) view.classList.remove("hidden");
 };
+
+function montarMenuPublico() {
+
+  if (!menuDropdown) return;
+
+  menuDropdown.innerHTML = "";
+
+  menuPublico.forEach(item => {
+
+    const btn = document.createElement("button");
+    btn.textContent = item.nome;
+
+    btn.onclick = () => window[item.acao]();
+
+    menuDropdown.appendChild(btn);
+  });
+}
+window.abrirSobre = () => {
+
+  alert("Informações sobre a empresa (em construção)");
+}
+window.abrirContato = () => {
+
+  alert("Informações de contato (em construção)");
+}
