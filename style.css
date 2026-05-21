@@ -471,3 +471,26 @@ button:hover {
   margin-bottom: 10px;
 
 }
+
+details {
+  contain: content;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.ferramenta-item {
+  will-change: auto;
+}
+
+.modal {
+  backdrop-filter: blur(3px);
+}
+
+button,
+input,
+select {
+  transform: translateZ(0);
+}
