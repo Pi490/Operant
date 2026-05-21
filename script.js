@@ -12,33 +12,18 @@ import {
   getDocs
 } from "./firebase.js";
 
-/* =====================================================
-   ESTADO
-===================================================== */
-
 window.usuarioLogadoUID = null;
 window.dadosUsuarioAtual = null;
 window.mesAbertoAtual = null;
+window.usuarioSelecionadoUID = null;
+window.mesSelecionado = null;
 
 let checklistGerado = false;
 let dashboardCarregado = false;
 
 const agora = new Date();
 
-const mesAno =
-  `${agora.getMonth() + 1}-${agora.getFullYear()}`;
-
-/* =====================================================
-   CONFIG
-===================================================== */
-
-const perguntasConfig = {
-  posse: true,
-  condicao: true,
-  reposicao: true,
-  motivo: true,
-  fotos: true
-};
+const mesAno = `${agora.getMonth() + 1}-${agora.getFullYear()}`;
 
 const ferramentas = [
   "Alicate de bico",
@@ -95,10 +80,6 @@ const ferramentas = [
   "Torno de bancada"
 ];
 
-/* =====================================================
-   DOM
-===================================================== */
-
 let loginView;
 let registerView;
 let techView;
@@ -109,13 +90,28 @@ window.mainHeader = null;
 
 let headerPerfil;
 let perfilMenu;
-
 let menuToggle;
 let menuDropdown;
 
-/* =====================================================
-   INIT
-===================================================== */
+function esconderTudo() {
+  if (loginView) loginView.classList.add("hidden");
+  if (registerView) registerView.classList.add("hidden");
+  if (techView) techView.classList.add("hidden");
+  if (adminView) adminView.classList.add("hidden");
+  if (settingsView) settingsView.classList.add("hidden");
+
+  const homeView = document.getElementById("homeView");
+  if (homeView) homeView.classList.add("hidden");
+
+  const regras = document.getElementById("regrasView");
+  if (regras) regras.classList.add("hidden");
+
+  const maletas = document.getElementById("maletasView");
+  if (maletas) maletas.classList.add("hidden");
+
+  const regrasTec = document.getElementById("regrasTecnicoView");
+  if (regrasTec) regrasTec.classList.add("hidden");
+}
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -125,63 +121,30 @@ document.addEventListener("DOMContentLoaded", () => {
   adminView = document.getElementById("adminView");
   settingsView = document.getElementById("settingsView");
 
-  window.mainHeader =
-    document.getElementById("mainHeader");
+  window.mainHeader = document.getElementById("mainHeader");
 
-  headerPerfil =
-    document.getElementById("headerPerfil");
+  headerPerfil = document.getElementById("headerPerfil");
+  perfilMenu = document.getElementById("perfilMenu");
+  menuToggle = document.getElementById("menuToggle");
+  menuDropdown = document.getElementById("menuDropdown");
 
-  perfilMenu =
-    document.getElementById("perfilMenu");
+  esconderTudo();
 
-  menuToggle =
-    document.getElementById("menuToggle");
+  const homeView = document.getElementById("homeView");
+  if (homeView) homeView.classList.remove("hidden");
 
-  menuDropdown =
-    document.getElementById("menuDropdown");
+  const btnLogin = document.getElementById("btnLogin");
+  if (btnLogin) btnLogin.onclick = login;
 
-  /* =====================================================
-     BOTÕES
-  ===================================================== */
+  const btnRegister = document.getElementById("btnRegister");
+  if (btnRegister) btnRegister.onclick = register;
 
-  const btnLogin =
-    document.getElementById("btnLogin");
-
-  if (btnLogin) {
-    btnLogin.onclick = login;
-  }
-
-  const btnRegister =
-    document.getElementById("btnRegister");
-
-  if (btnRegister) {
-    btnRegister.onclick = register;
-  }
-
-  const btnShowRegister =
-    document.getElementById("btnShowRegister");
-
-  if (btnShowRegister) {
-    btnShowRegister.onclick = showRegister;
-  }
-
-  const btnShowLogin =
-    document.getElementById("btnShowLogin");
-
-  if (btnShowLogin) {
-    btnShowLogin.onclick = showLogin;
-  }
-
-  const btnEnviarChecklist =
-    document.getElementById("btnEnviarChecklist");
-
+  const btnEnviarChecklist = document.getElementById("btnEnviarChecklist");
   if (btnEnviarChecklist) {
-    btnEnviarChecklist.onclick =
-      enviarChecklist;
+    btnEnviarChecklist.onclick = enviarChecklist;
   }
 
-  const btnExportar =
-    document.getElementById("btnExportarExcel");
+  const btnExportar = document.getElementById("btnExportarExcel");
 
   if (btnExportar) {
     btnExportar.onclick = () => {
@@ -189,51 +152,16 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  const btnSalvar =
-    document.getElementById("btnSalvarDadosTecnico");
+  const fotoCaixa = document.getElementById("foto_caixa");
 
-  if (btnSalvar) {
-
-    btnSalvar.onclick = async () => {
-
-      try {
-
-        const telefone =
-          document.getElementById("meuTelefone").value;
-
-        const teams =
-          document.getElementById("meuTeams").value;
-
-        await setDoc(
-          doc(db, "users", window.usuarioLogadoUID),
-          {
-            telefone,
-            teams
-          },
-          {
-            merge: true
-          }
-        );
-
-        alert("✅ Dados atualizados com sucesso!");
-
-      } catch (err) {
-
-        console.error(err);
-
-        alert("Erro ao salvar dados.");
-      }
-    };
+  if (fotoCaixa) {
+    fotoCaixa.addEventListener("change", () => {
+      mostrarPreview(fotoCaixa, "preview_caixa");
+    });
   }
 
-  /* =====================================================
-     MENU PERFIL
-  ===================================================== */
-
   if (headerPerfil) {
-
     headerPerfil.onclick = e => {
-
       e.stopPropagation();
 
       if (perfilMenu) {
@@ -247,9 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (menuToggle) {
-
     menuToggle.onclick = e => {
-
       e.stopPropagation();
 
       if (menuDropdown) {
@@ -263,66 +189,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.onclick = () => {
-
-    if (perfilMenu) {
-      perfilMenu.classList.add("hidden");
-    }
-
-    if (menuDropdown) {
-      menuDropdown.classList.add("hidden");
-    }
-  };
-
-  /* =====================================================
-     SETTINGS
-  ===================================================== */
-
-  window.voltarDoSettings = () => {
-
-    if (settingsView) {
-      settingsView.classList.add("hidden");
-    }
-
-    window.carregarPerfil(
-      window.usuarioLogadoUID
-    );
+    if (perfilMenu) perfilMenu.classList.add("hidden");
+    if (menuDropdown) menuDropdown.classList.add("hidden");
   };
 });
-// ✅ garante que tudo começa escondido corretamente
-esconderTudo();
-
-const homeView = document.getElementById("homeView");
-if (homeView) homeView.classList.remove("hidden");
-
-/* =====================================================
-   UI
-===================================================== */
-
-function esconderTudo() {
-
-  if (loginView) loginView.classList.add("hidden");
-  if (registerView) registerView.classList.add("hidden");
-  if (techView) techView.classList.add("hidden");
-  if (adminView) adminView.classList.add("hidden");
-  if (settingsView) settingsView.classList.add("hidden");
-
-  const homeView = document.getElementById("homeView");
-  if (homeView) homeView.classList.add("hidden");
-
-  // ✅ ADICIONA ISSO
-  const regras = document.getElementById("regrasView");
-  if (regras) regras.classList.add("hidden");
-
-  const maletas = document.getElementById("maletasView");
-  if (maletas) maletas.classList.add("hidden");
-
-  const regrasTec = document.getElementById("regrasTecnicoView");
-  if (regrasTec) regrasTec.classList.add("hidden");
-}
-
 
 window.showLogin = function () {
-
   esconderTudo();
 
   if (loginView) {
@@ -330,267 +202,119 @@ window.showLogin = function () {
   }
 };
 
-function showRegister() {
-
-  esconderTudo();
-
-  if (registerView) {
-    registerView.classList.remove("hidden");
-  }
-}
-
-/* =====================================================
-   AUTH
-===================================================== */
-
-onAuthStateChanged(auth, async user => {
-
-  if (user) {
-
-    window.usuarioLogadoUID = user.uid;
-    checklistGerado = false;
-
-    if (window.mainHeader) {
-      window.mainHeader.classList.remove("hidden");
-    }
-
-    const modal =
-      document.getElementById("loginModal");
-
-    if (modal)
-      modal.classList.add("hidden");
-
-    const loginLink =
-      document.getElementById("loginLink");
-
-    if (loginLink)
-      loginLink.style.display = "none";
-
-    const perfil =
-      document.getElementById("headerPerfil");
-
-    if (perfil)
-      perfil.classList.remove("hidden");
-
-    await carregarPerfil(user.uid);
-
-  } else {
-
-    window.usuarioLogadoUID = null;
-    checklistGerado = false;
-
-    if (window.mainHeader) {
-      window.mainHeader.classList.remove("hidden");
-    }
-
-    const loginLink =
-      document.getElementById("loginLink");
-
-    if (loginLink)
-      loginLink.style.display = "inline";
-
-    const perfil =
-      document.getElementById("headerPerfil");
-
-    if (perfil)
-      perfil.classList.add("hidden");
-
-    esconderTudo();
-
-    const homeView =
-      document.getElementById("homeView");
-
-    if (homeView)
-      homeView.classList.remove("hidden");
-  }
-  montarMenuPublico();
-});
-
-/* =====================================================
-   LOGIN
-===================================================== */
-
 async function login() {
 
   const modal = document.getElementById("loginModal");
 
-  // ✅ FECHA NA HORA
   if (modal) modal.classList.add("hidden");
 
   try {
 
-    const email =
-      document.getElementById("loginEmail").value;
+    const email = document.getElementById("loginEmail").value;
+    const senha = document.getElementById("loginPassword").value;
 
-    const senha =
-      document.getElementById("loginPassword").value;
-
-    await signInWithEmailAndPassword(
-      auth,
-      email,
-      senha
-    );
+    await signInWithEmailAndPassword(auth, email, senha);
 
   } catch (err) {
 
     console.error(err);
 
-    // ✅ SE DER ERRO, REABRE
     if (modal) modal.classList.remove("hidden");
 
     alert("Erro ao fazer login.");
   }
 }
 
-/* =====================================================
-   REGISTER
-===================================================== */
-
 async function register() {
 
   try {
 
-    const nome =
-      document.getElementById("regName").value;
+    const nome = document.getElementById("regName").value;
 
-    const email =
-      document.getElementById("regEmail").value.trim();
+    const email = document.getElementById("regEmail").value.trim();
 
-    const senha =
-      document.getElementById("regPassword").value;
+    const telefone = document.getElementById("regTelefone").value;
 
-    const confirmarSenha =
-      document.getElementById("regConfirmPassword").value;
+    const teams = document.getElementById("regTeams").value;
 
-    const perfil =
-      document.getElementById("regRole").value;
+    const senha = document.getElementById("regPassword").value;
 
-    const teams =
-      document.getElementById("regTeams").value;
+    const confirmarSenha = document.getElementById("regConfirmPassword").value;
+
+    const perfil = document.getElementById("regRole").value;
 
     if (!email.endsWith("@kuhn.com")) {
-
-      alert(
-        "Use um e-mail corporativo @kuhn.com"
-      );
-
+      alert("Use um e-mail corporativo @kuhn.com");
       return;
     }
-
-    const erro =
-      document.getElementById("erroSenha");
 
     if (senha !== confirmarSenha) {
-
-      if (erro)
-        erro.style.display = "block";
-
+      alert("As senhas não coincidem.");
       return;
     }
 
-    if (erro)
-      erro.style.display = "none";
+    const cred = await createUserWithEmailAndPassword(auth, email, senha);
 
-    const cred =
-      await createUserWithEmailAndPassword(
-        auth,
-        email,
-        senha
-      );
-
-    await setDoc(
-      doc(db, "users", cred.user.uid),
-      {
-        nome,
-        email,
-        telefone: "",
-        teams,
-        perfil
-      }
-    );
+    await setDoc(doc(db, "users", cred.user.uid), {
+      nome,
+      email,
+      telefone,
+      teams,
+      perfil
+    });
 
     alert("✅ Cadastro realizado!");
 
-    window.showLogin();
+    window.mostrarLogin();
 
   } catch (err) {
-
     console.error(err);
-
-    if (err.code === "auth/email-already-in-use") {
-
-      alert("E-mail já cadastrado.");
-
-    } else if (
-      err.code === "auth/weak-password"
-    ) {
-
-      alert(
-        "A senha deve ter pelo menos 6 caracteres."
-      );
-
-    } else {
-
-      alert("Erro ao cadastrar.");
-    }
+    alert("Erro ao cadastrar.");
   }
 }
 
-/* =====================================================
-   LOGOUT
-===================================================== */
+onAuthStateChanged(auth, async user => {
 
-window.logout = async () => {
+  if (user) {
 
-  try {
-    await signOut(auth);
+    window.usuarioLogadoUID = user.uid;
 
-    esconderTudo();
+    // ✅ ESCONDE LOGIN
+    const loginLink = document.getElementById("loginLink");
+    if (loginLink) loginLink.style.display = "none";
 
-    const home = document.getElementById("homeView");
-    if (home) home.classList.remove("hidden");
+    // ✅ MOSTRA PERFIL
+    const perfil = document.getElementById("headerPerfil");
+    if (perfil) perfil.classList.remove("hidden");
 
-  } catch (err) {
-    console.error(err);
+ esconderTudo();
+    const homeView = document.getElementById("homeView");
+    if (homeView) homeView.classList.remove("hidden");
+    carregarPerfil(user.uid);
+
+  } else {
+
+    window.usuarioLogadoUID = null;
+
+    // ✅ MOSTRA LOGIN
+    const loginLink = document.getElementById("loginLink");
+    if (loginLink) loginLink.style.display = "inline";
+
+    // ✅ ESCONDE PERFIL
+    const perfil = document.getElementById("headerPerfil");
+    if (perfil) perfil.classList.add("hidden");
+
   }
-};
-
-/* =====================================================
-   PERFIL
-===================================================== */
-
-window.abrirConfiguracoes = () => {
-
-  esconderTudo();
-
-  if (settingsView) {
-    settingsView.classList.remove("hidden");
-  }
-
-  if (!window.dadosUsuarioAtual)
-    return;
-
-  document.getElementById("meuEmail").value =
-    window.dadosUsuarioAtual.email || "";
-
-  document.getElementById("meuTelefone").value =
-    window.dadosUsuarioAtual.telefone || "";
-
-  document.getElementById("meuTeams").value =
-    window.dadosUsuarioAtual.teams || "";
-};
+});
 
 window.carregarPerfil = async uid => {
 
   try {
 
-    const snap =
-      await getDoc(doc(db, "users", uid));
+    const snap = await getDoc(doc(db, "users", uid));
 
     if (!snap.exists()) {
-
       alert("Usuário não encontrado.");
-
       return;
     }
 
@@ -601,69 +325,57 @@ window.carregarPerfil = async uid => {
     esconderTudo();
 
     if (headerPerfil) {
-      headerPerfil.textContent =
-        `${dados.perfil} ▾`;
+      headerPerfil.textContent = `${dados.perfil} ▾`;
+      headerPerfil.classList.remove("hidden");
     }
 
-
-    
     montarMenuPorPerfil(dados.perfil);
-if (dados.perfil === "admin") {
 
-  const regras = document.getElementById("regrasView");
+    if (dados.perfil === "admin") {
 
-  if (regras) {
-    regras.classList.remove("hidden");
+      const regras = document.getElementById("regrasView");
+
+      if (regras) regras.classList.remove("hidden");
+
+      return;
+    }
+
+    if (dados.perfil === "tecnico") {
+
+  const regrasTec = document.getElementById("regrasTecnicoView");
+
+  if (regrasTec) {
+    regrasTec.classList.remove("hidden");
   }
 
+  // ✅ NÃO MOSTRA CHECKLIST AQUI
   return;
 }
 
-    /* =====================================================
-       TÉCNICO
-    ===================================================== */
-
-   // ✅ SEMPRE mostra dashboard primeiro
-if (dados.perfil === "tecnico") {
-
-  // ✅ mostra apenas regras
-  const regrasTec = document.getElementById("regrasTecnicoView");
-  if (regrasTec) regrasTec.classList.remove("hidden");
-
-  return;
-  // ✅ também mostra checklist abaixo
-  if (techView) techView.classList.remove("hidden");
-
-  gerarChecklist();
-}
   } catch (err) {
-
     console.error(err);
-
     alert("Erro ao carregar perfil.");
   }
 };
 
-/* =====================================================
-   MENU ADMIN
-===================================================== */
 const menuPorPerfil = {
   admin: [
     { nome: "Análise de técnicos", acao: "abrirAdmin" },
+    { nome: "Regras", acao: "abrirRegras" },
     { nome: "Maletas", acao: "abrirMaletas" },
-    { nome: "Aprovar Compras", acao: "abrirAprovarCompras" },
-    { nome: "Estatísticas", acao: "abrirEstatisticas" }
+    { nome: "Estatísticas", acao: "abrirEstatisticas" },
+    {nome: "Documentação", acao: "abrirDocumentacao"}, 
+    {nome: "Aprovar Compras", acao: "abrir AprovarCompras"}
   ],
+
   tecnico: [
     { nome: "Checklist", acao: "abrirChecklist" },
-    { nome: "Documentos Técnicos", acao: "abrirDocumentosTecnicos" },
-    { nome: "Certificados", acao: "abrirCertificados" },
+    { nome: "Regras", acao: "abrirRegras" },
+    {nome: "Documentação", acao: "abrirDocumentacao"}, 
+   {nome: "Compras", acao: "abrirCompras"}
   ]
-}
-const menuPublico = [
-  { nome: "Sobre a empresa", acao: "abrirSobre" },
-  { nome: "Contato", acao: "abrirContato" }
-];
+};
+
 function montarMenuPorPerfil(perfil) {
 
   if (!menuDropdown) return;
@@ -675,6 +387,7 @@ function montarMenuPorPerfil(perfil) {
   itens.forEach(item => {
 
     const btn = document.createElement("button");
+
     btn.textContent = item.nome;
 
     btn.onclick = () => window[item.acao]();
@@ -682,60 +395,23 @@ function montarMenuPorPerfil(perfil) {
     menuDropdown.appendChild(btn);
   });
 }
-window.abrirEstatisticas = () => {
-  alert("Área de Estatísticas (em construção)");
-};
-
-window.abrirDocumentosTecnicos = () => {
-  alert("Documentos técnicos (em construção)");
-};
-
-window.abrirCertificados = () => {
-  alert("Certificados (em construção)");
-};
-
-window.abrirAprovarCompras = () => {
-  alert("Aprovação de compras (em construção)");
-};
-
-window.abrirComprasFerramentas = () => {
-  alert("Compras de ferramentas (em construção)");
-};
-
-window.abrirDocumentosPendentes = () => {
-  alert("Documentos pendentes (em construção)");
-};
-
-
-/* =====================================================
-   CHECKLIST
-===================================================== */
 
 function atualizarFotos(index) {
 
-  const reposicao =
-    document.getElementById(`rep_${index}`)?.checked || false;
+  const reposicao = document.getElementById(`rep_${index}`)?.checked || false;
 
-  const box =
-    document.getElementById(`fotos_${index}`);
+  const box = document.getElementById(`fotos_${index}`);
 
-  if (!box)
-    return;
+  if (!box) return;
 
   box.classList.toggle("hidden", !reposicao);
 }
 
-/* =====================================================
-   GERAR CHECKLIST
-===================================================== */
-
 function gerarChecklist() {
 
-  const form =
-    document.getElementById("checklistForm");
+  const form = document.getElementById("checklistForm");
 
-  if (!form)
-    return;
+  if (!form) return;
 
   form.innerHTML = "";
 
@@ -751,251 +427,151 @@ function gerarChecklist() {
         <div class="ferramenta-detalhes">
 
           <div class="pergunta-grupo">
-
             <p>Está com o técnico?</p>
 
             <div class="opcoes-horizontal">
 
               <label>
-                <input
-                  type="radio"
-                  name="posse_${i}"
-                  value="sim"
-                  checked
-                >
+                <input type="radio" name="posse_${i}" value="sim" checked>
                 Sim
               </label>
 
               <label>
-                <input
-                  type="radio"
-                  name="posse_${i}"
-                  value="nao"
-                >
+                <input type="radio" name="posse_${i}" value="nao">
                 Não
               </label>
 
             </div>
-
           </div>
 
           <div class="pergunta-grupo">
-
             <p>Está em boas condições?</p>
 
             <div class="opcoes-horizontal">
 
               <label>
-                <input
-                  type="radio"
-                  name="cond_${i}"
-                  value="sim"
-                  checked
-                >
+                <input type="radio" name="cond_${i}" value="sim" checked>
                 Boa
               </label>
 
               <label>
-                <input
-                  type="radio"
-                  name="cond_${i}"
-                  value="nao"
-                >
+                <input type="radio" name="cond_${i}" value="nao">
                 Ruim
               </label>
 
             </div>
-
           </div>
 
           <div class="pergunta-grupo">
-
             <p>Precisa de reposição?</p>
 
             <label class="checkbox-linha">
-
-              <input
-                type="checkbox"
-                id="rep_${i}"
-              >
-
+              <input type="checkbox" id="rep_${i}">
               Sim
-
             </label>
-
           </div>
 
           <div class="pergunta-grupo">
-
-            <input
-              type="text"
-              id="mot_${i}"
-              placeholder="Motivo"
-            >
-
+            <input type="text" id="mot_${i}" placeholder="Motivo">
           </div>
 
-          <div
-            class="pergunta-grupo fotos-grupo hidden"
-            id="fotos_${i}"
-          >
+          <div class="pergunta-grupo fotos-grupo hidden" id="fotos_${i}">
 
             <p>📸 Adicione fotos</p>
 
-            <input
-              type="file"
-              id="foto_${i}_1"
-              accept="image/*"
-            >
+            <input type="file" id="foto_${i}_1" accept="image/*">
+            <img id="preview_${i}_1" class="preview-foto hidden">
 
-            <img
-              id="preview_${i}_1"
-              class="preview-foto hidden"
-            >
-
-            <input
-              type="file"
-              id="foto_${i}_2"
-              accept="image/*"
-            >
-
-            <img
-              id="preview_${i}_2"
-              class="preview-foto hidden"
-            >
+            <input type="file" id="foto_${i}_2" accept="image/*">
+            <img id="preview_${i}_2" class="preview-foto hidden">
 
           </div>
-
         </div>
-
       </details>
     `;
 
-    form.insertAdjacentHTML(
-      "beforeend",
-      html
-    );
+    form.insertAdjacentHTML("beforeend", html);
 
-    const rep =
-      document.getElementById(`rep_${i}`);
-
-    const foto1 =
-      document.getElementById(`foto_${i}_1`);
-
-    const foto2 =
-      document.getElementById(`foto_${i}_2`);
+    const rep = document.getElementById(`rep_${i}`);
 
     if (rep) {
-
-      rep.addEventListener(
-        "change",
-        () => atualizarFotos(i)
-      );
+      rep.addEventListener("change", () => atualizarFotos(i));
     }
 
-    if (foto1) {
+    const foto1 = document.getElementById(`foto_${i}_1`);
+    const foto2 = document.getElementById(`foto_${i}_2`);
 
-      foto1.addEventListener(
-        "change",
-        () => mostrarPreview(
-          foto1,
-          `preview_${i}_1`
-        )
-      );
+    if (foto1) {
+      foto1.addEventListener("change", () => {
+        mostrarPreview(foto1, `preview_${i}_1`);
+      });
     }
 
     if (foto2) {
-
-      foto2.addEventListener(
-        "change",
-        () => mostrarPreview(
-          foto2,
-          `preview_${i}_2`
-        )
-      );
+      foto2.addEventListener("change", () => {
+        mostrarPreview(foto2, `preview_${i}_2`);
+      });
     }
   });
 }
 
-/* =====================================================
-   PREVIEW
-===================================================== */
+function mostrarPreview(input, previewId) {
 
-function mostrarPreview(
-  input,
-  previewId
-) {
+  const file = input.files[0];
 
-  const file =
-    input.files[0];
+  const img = document.getElementById(previewId);
 
-  const img =
-    document.getElementById(previewId);
+  if (!file || !img) return;
 
-  if (!file || !img)
-    return;
-
-  img.src =
-    URL.createObjectURL(file);
+  img.src = URL.createObjectURL(file);
 
   img.classList.remove("hidden");
 }
 
-/* =====================================================
-   UPLOAD
-===================================================== */
+function motivoExigeFoto(motivo) {
 
-async function uploadFotosChecklist(
-  uid,
-  index,
-  files
-) {
+  if (!motivo) return false;
+
+  const texto = motivo.toLowerCase();
+
+  return (
+    texto.includes("quebrou") ||
+    texto.includes("enferrujou") ||
+    texto.includes("entortou")
+  );
+}
+
+async function uploadFotosChecklist(uid, index, files) {
 
   const urls = [];
 
-  const IMG_API_KEY =
-    "1330ec2db0fdff7ca29b67c8c686af05";
+  const IMG_API_KEY = "1330ec2db0fdff7ca29b67c8c686af05";
 
   for (let i = 0; i < files.length; i++) {
 
-    if (!files[i])
-      continue;
+    if (!files[i]) continue;
 
-    const formData =
-      new FormData();
+    const formData = new FormData();
 
-    formData.append(
-      "image",
-      files[i]
-    );
+    formData.append("image", files[i]);
 
     try {
 
-      const response =
-        await fetch(
-          `https://api.imgbb.com/1/upload?key=${IMG_API_KEY}`,
-          {
-            method: "POST",
-            body: formData
-          }
-        );
+      const response = await fetch(
+        `https://api.imgbb.com/1/upload?key=${IMG_API_KEY}`,
+        {
+          method: "POST",
+          body: formData
+        }
+      );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (data.success) {
-
-        urls.push(
-          data.data.url
-        );
-
-      } else {
-
-        console.error(data);
+        urls.push(data.data.url);
       }
 
     } catch (error) {
-
       console.error(error);
     }
   }
@@ -1003,9 +579,20 @@ async function uploadFotosChecklist(
   return urls;
 }
 
-/* =====================================================
-   ENVIAR CHECKLIST
-===================================================== */
+async function salvarChecklist(checklist) {
+
+  await setDoc(
+    doc(db, "checklists", `${window.usuarioLogadoUID}_${mesAno}`),
+    {
+      uid: window.usuarioLogadoUID,
+      checklist,
+      criadoEm: new Date(),
+      mesAno
+    }
+  );
+
+  alert("✅ Checklist enviado!");
+}
 
 async function enviarChecklist() {
 
@@ -1013,57 +600,29 @@ async function enviarChecklist() {
 
     const checklist = [];
 
-    const ferramentasSemFotoObrigatoria = [];
-
-    let houveProblema = false;
-
     for (let i = 0; i < ferramentas.length; i++) {
 
-      const estaComTecnico =
-        document.querySelector(
-          `input[name="posse_${i}"]:checked`
-        )?.value === "sim";
+      const estaComTecnico = document.querySelector(`input[name="posse_${i}"]:checked`)?.value === "sim";
 
-      const boasCondicoes =
-        document.querySelector(
-          `input[name="cond_${i}"]:checked`
-        )?.value === "sim";
+      const boasCondicoes = document.querySelector(`input[name="cond_${i}"]:checked`)?.value === "sim";
 
-      const precisaReposicao =
-        document.getElementById(`rep_${i}`)?.checked || false;
+      const precisaReposicao = document.getElementById(`rep_${i}`)?.checked || false;
 
-      const motivo =
-        document.getElementById(`mot_${i}`)?.value || "";
+      const motivo = document.getElementById(`mot_${i}`)?.value || "";
 
       let fotos = [];
 
       if (precisaReposicao) {
 
-        houveProblema = true;
+        const f1 = document.getElementById(`foto_${i}_1`)?.files[0];
+        const f2 = document.getElementById(`foto_${i}_2`)?.files[0];
 
-        const f1 =
-          document.getElementById(`foto_${i}_1`)?.files[0];
-
-        const f2 =
-          document.getElementById(`foto_${i}_2`)?.files[0];
-
-        const exigeFoto =
-          motivoExigeFoto(motivo);
-
-        if (exigeFoto && !f1 && !f2) {
-
-          ferramentasSemFotoObrigatoria.push(
-            ferramentas[i]
-          );
-
-          continue;
+        if (motivoExigeFoto(motivo) && !f1 && !f2) {
+          alert(`A ferramenta ${ferramentas[i]} exige foto.`);
+          return;
         }
 
-        fotos = await uploadFotosChecklist(
-          window.usuarioLogadoUID,
-          i,
-          [f1, f2]
-        );
+        fotos = await uploadFotosChecklist(window.usuarioLogadoUID, i, [f1, f2]);
       }
 
       checklist.push({
@@ -1076,156 +635,83 @@ async function enviarChecklist() {
       });
     }
 
-    if (ferramentasSemFotoObrigatoria.length > 0) {
-
-      alert(
-        `❌ Ferramentas que precisam de foto:\n\n• ${ferramentasSemFotoObrigatoria.join("\n• ")}`
-      );
-
-      return;
-    }
-
-    if (!houveProblema) {
-
-      const caixaGrupo =
-        document.getElementById("caixaGrupo");
-
-      if (caixaGrupo) {
-        caixaGrupo.classList.remove("hidden");
-      }
-
-      const fotoCaixa =
-        document.getElementById("foto_caixa")?.files[0];
-
-      if (!fotoCaixa) {
-
-        alert(
-          "📸 Adicione a foto da caixa organizada antes de enviar."
-        );
-
-        return;
-      }
-
-      const urls =
-        await uploadFotosChecklist(
-          window.usuarioLogadoUID,
-          "caixa",
-          [fotoCaixa]
-        );
-
-      checklist.push({
-        ferramenta: "Foto da caixa",
-        estaComTecnico: true,
-        boasCondicoes: true,
-        precisaReposicao: false,
-        motivo: "Tudo OK",
-        fotos: urls
-      });
-    }
-
     await salvarChecklist(checklist);
 
   } catch (err) {
-
     console.error(err);
-
     alert("Erro ao enviar checklist.");
   }
 }
 
-/* =====================================================
-   DASHBOARD ADMIN
-===================================================== */
+window.abrirChecklist = () => {
+
+  esconderTudo();
+
+  if (techView) {
+    techView.classList.remove("hidden");
+  }
+
+  gerarChecklist();
+};
+
+window.abrirAdmin = () => {
+
+  esconderTudo();
+
+  dashboardCarregado = false;
+
+  if (adminView) {
+    adminView.classList.remove("hidden");
+  }
+
+  carregarDashboardAdmin();
+};
 
 async function carregarDashboardAdmin() {
 
-if (dashboardCarregado) return;
-dashboardCarregado = true;
+  if (dashboardCarregado) return;
+  dashboardCarregado = true;
 
-  const tbody =
-    document.querySelector(
-      "#tabelaTecnicos tbody"
-    );
-
-  if (!tbody)
-    return;
+  const tbody = document.querySelector("#tabelaTecnicos tbody");
+  if (!tbody) return;
 
   tbody.innerHTML = "";
 
-  const users =
-    await getDocs(
-      collection(db, "users")
-    );
-
-  let ok = 0;
-  let problemas = 0;
-  let pendentes = 0;
+  const users = await getDocs(collection(db, "users"));
 
   for (const u of users.docs) {
 
-    const userData =
-      u.data();
+    const userData = u.data();
+    if (userData.perfil !== "tecnico") continue;
 
-    if (userData.perfil !== "tecnico")
-      continue;
-
-    const chk =
-      await getDoc(
-        doc(
-          db,
-          "checklists",
-          `${u.id}_${mesAno}`
-        )
-      );
+    const chk = await getDoc(
+      doc(db, "checklists", `${u.id}_${mesAno}`)
+    );
 
     let status = "Pendente";
     let classe = "pendente";
 
     if (chk.exists()) {
 
-      const checklist =
-        chk.data().checklist;
+      const checklist = chk.data().checklist || [];
 
-      const temProblema =
-        checklist.some(r =>
-          !r.estaComTecnico ||
-          !r.boasCondicoes ||
-          r.precisaReposicao
-        );
+      const temProblema = checklist.some(r =>
+        !r.estaComTecnico ||
+        !r.boasCondicoes ||
+        r.precisaReposicao
+      );
 
-      status =
-        temProblema
-          ? "Problemas"
-          : "OK";
-
-      classe =
-        temProblema
-          ? "problema"
-          : "ok";
+      status = temProblema ? "Problemas" : "OK";
+      classe = temProblema ? "problema" : "ok";
     }
 
-    if (status === "OK") ok++;
-    if (status === "Problemas") problemas++;
-    if (status === "Pendente") pendentes++;
-
-    const tr =
-      document.createElement("tr");
+    const tr = document.createElement("tr");
 
     tr.innerHTML = `
       <td>
-
-        <button
-          class="btn-tecnico"
-          onclick="abrirDetalhesTecnico(
-            '${userData.nome}',
-            '${userData.email || ""}',
-            '${userData.telefone || ""}',
-            '${userData.teams || ""}'
-          )"
-        >
+        <button class="btn-tecnico">
           ${userData.nome}
         </button>
-
       </td>
 
       <td class="${classe}">
@@ -1235,421 +721,58 @@ dashboardCarregado = true;
 
     tbody.appendChild(tr);
   }
-
-  const countOk =
-    document.getElementById("countOk");
-
-  const countProblemas =
-    document.getElementById("countProblemas");
-
-  const countPendente =
-    document.getElementById("countPendente");
-
-  if (countOk)
-    countOk.textContent = ok;
-
-  if (countProblemas)
-    countProblemas.textContent = problemas;
-
-  if (countPendente)
-    countPendente.textContent = pendentes;
 }
 
-/* =====================================================
-   MODAL
-===================================================== */
+window.exportarExcelProblemasPorTecnico = async function () {
 
-window.abrirDetalhesTecnico = function (
-  nome,
-  email,
-  telefone,
-  teams
-) {
+  try {
 
-  const modal =
-    document.getElementById("modalTecnico");
+    const XLSX = window.XLSX;
 
-  if (!modal)
-    return;
-
-  modal.classList.remove("hidden");
-
-  document.getElementById("modalEmail").value =
-    email;
-
-  document.getElementById("modalTelefone").value =
-    telefone;
-
-  document.getElementById("modalTeams").value =
-    teams;
-
-  const link =
-    document.getElementById("linkTeams");
-
-  if (link)
-    link.href = teams;
-};
-
-window.fecharModalTecnico = function () {
-
-  const modal =
-    document.getElementById("modalTecnico");
-
-  if (modal) {
-    modal.classList.add("hidden");
-  }
-};
-
-/* =====================================================
-   EXCEL
-===================================================== */
-
-window.exportarExcelProblemasPorTecnico =
-  async function () {
-
-    try {
-
-      const XLSX =
-        window.XLSX;
-
-      if (!XLSX) {
-
-        alert(
-          "Erro ao carregar biblioteca de Excel."
-        );
-
-        return;
-      }
-
-      const wb =
-        XLSX.utils.book_new();
-
-      const users =
-        await getDocs(
-          collection(db, "users")
-        );
-
-      let possuiDados = false;
-
-      for (const u of users.docs) {
-
-        const userData =
-          u.data();
-
-        if (userData.perfil !== "tecnico")
-          continue;
-
-        const chk =
-          await getDoc(
-            doc(
-              db,
-              "checklists",
-              `${u.id}_${mesAno}`
-            )
-          );
-
-        if (!chk.exists())
-          continue;
-
-        const checklist =
-          chk.data().checklist || [];
-
-        const problemas =
-          checklist.filter(r =>
-            !r.estaComTecnico ||
-            !r.boasCondicoes ||
-            r.precisaReposicao
-          );
-
-        if (problemas.length === 0)
-          continue;
-
-        possuiDados = true;
-
-        const dados = [
-          [
-            "Técnico",
-            "Ferramenta",
-            "Com Técnico",
-            "Condição",
-            "Reposição",
-            "Motivo",
-            "Foto 1",
-            "Foto 2",
-            "Possui Foto",
-            "Data"
-          ]
-        ];
-
-        problemas.forEach((p, index) => {
-
-          const possuiFoto =
-            (p.fotos && (p.fotos[0] || p.fotos[1]))
-              ? "Sim"
-              : "Não";
-
-          dados.push([
-            index === 0 ? userData.nome : "",
-            p.ferramenta,
-            p.estaComTecnico ? "Sim" : "Não",
-            p.boasCondicoes ? "Boa" : "Ruim",
-            p.precisaReposicao ? "Sim" : "Não",
-            p.motivo || "",
-            p.fotos?.[0] || "",
-            p.fotos?.[1] || "",
-            possuiFoto,
-            new Date().toLocaleDateString()
-          ]);
-        });
-
-        const ws =
-          XLSX.utils.aoa_to_sheet(dados);
-
-        const range =
-          XLSX.utils.decode_range(ws["!ref"]);
-
-        for (let row = 0; row <= range.e.r; row++) {
-
-          for (let col = 0; col <= range.e.c; col++) {
-
-            const cell =
-              XLSX.utils.encode_cell({
-                r: row,
-                c: col
-              });
-
-            if (!ws[cell])
-              ws[cell] = {};
-
-            ws[cell].s = {
-
-              ...(row === 0 && {
-
-                font: {
-                  bold: true,
-                  color: { rgb: "FFFFFF" }
-                },
-
-                fill: {
-                  fgColor: { rgb: "860707" }
-                },
-
-                alignment: {
-                  horizontal: "center",
-                  vertical: "center"
-                }
-              }),
-
-              border: {
-                top: {
-                  style: "thin",
-                  color: { rgb: "000000" }
-                },
-                bottom: {
-                  style: "thin",
-                  color: { rgb: "000000" }
-                },
-                left: {
-                  style: "thin",
-                  color: { rgb: "000000" }
-                },
-                right: {
-                  style: "thin",
-                  color: { rgb: "000000" }
-                }
-              }
-            };
-          }
-        }
-
-        for (let i = 1; i < dados.length; i++) {
-
-          const f1 =
-            ws[`G${i + 1}`];
-
-          const f2 =
-            ws[`H${i + 1}`];
-
-          if (f1 && f1.v) {
-
-            f1.l = {
-              Target: f1.v
-            };
-
-            f1.v = "Abrir Foto";
-          }
-
-          if (f2 && f2.v) {
-
-            f2.l = {
-              Target: f2.v
-            };
-
-            f2.v = "Abrir Foto";
-          }
-        }
-
-        ws["!cols"] = [
-          { wch: 25 },
-          { wch: 35 },
-          { wch: 15 },
-          { wch: 15 },
-          { wch: 15 },
-          { wch: 30 },
-          { wch: 25 },
-          { wch: 25 },
-          { wch: 15 },
-          { wch: 15 }
-        ];
-
-        XLSX.utils.book_append_sheet(
-          wb,
-          ws,
-          userData.nome.substring(0, 30)
-        );
-      }
-
-      if (!possuiDados) {
-
-        alert("Nenhum problema encontrado.");
-
-        return;
-      }
-
-      XLSX.writeFile(
-        wb,
-        `Relatorio_${mesAno}.xlsx`
-      );
-
-    } catch (err) {
-
-      console.error(err);
-
-      alert("Erro ao exportar Excel.");
+    if (!XLSX) {
+      alert("Erro ao carregar XLSX");
+      return;
     }
-  };
 
-/* =====================================================
-   UTIL
-===================================================== */
+    const wb = XLSX.utils.book_new();
 
-function motivoExigeFoto(motivo) {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["Sistema", "Status"],
+      ["Exportação", "OK"]
+    ]);
 
-  if (!motivo)
-    return false;
+    XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
 
-  const texto =
-    motivo.toLowerCase();
+    XLSX.writeFile(wb, `Relatorio_${mesAno}.xlsx`);
 
-  return (
-    texto.includes("quebrou") ||
-    texto.includes("enferrujou") ||
-    texto.includes("entortou")
-  );
-}
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao exportar Excel.");
+  }
+};
 
-async function salvarChecklist(checklist) {
+window.logout = async () => {
 
-  await setDoc(
-    doc(
-      db,
-      "checklists",
-      `${window.usuarioLogadoUID}_${mesAno}`
-    ),
-    {
-      uid: window.usuarioLogadoUID,
-      checklist,
-      criadoEm: new Date(),
-      mesAno
+  try {
+
+    await signOut(auth);
+
+    window.dadosUsuarioAtual = null;
+    window.mesAbertoAtual = null;
+
+    esconderTudo();
+
+    const home = document.getElementById("homeView");
+
+    if (home) {
+      home.classList.remove("hidden");
     }
-  );
 
-  alert("✅ Checklist enviado!");
-}
-
-/* =====================================================
-   LOGIN MODAL
-===================================================== */
-
-window.irParaLogin = function () {
-
-  const loginView =
-    document.getElementById("loginView");
-
-  if (!loginView)
-    return;
-
-  const techView =
-    document.getElementById("techView");
-
-  const adminView =
-    document.getElementById("adminView");
-
-  const settingsView =
-    document.getElementById("settingsView");
-
-  if (techView)
-    techView.classList.add("hidden");
-
-  if (adminView)
-    adminView.classList.add("hidden");
-
-  if (settingsView)
-    settingsView.classList.add("hidden");
-
-  loginView.classList.remove("hidden");
-};
-
-window.abrirLogin = () => {
-
-  if (
-    window.usuarioLogadoUID === null &&
-    auth.currentUser
-  ) {
-    return;
+  } catch (err) {
+    console.error(err);
   }
-
-  if (window.usuarioLogadoUID) {
-    return;
-  }
-
-  const modal =
-    document.getElementById("loginModal");
-
-  if (modal)
-    modal.classList.remove("hidden");
 };
 
-window.fecharLogin = () => {
-
-  const modal =
-    document.getElementById("loginModal");
-
-  if (modal)
-    modal.classList.add("hidden");
-};
-
-window.mostrarCadastro = () => {
-
-  document
-    .getElementById("loginForm")
-    .classList.add("hidden");
-
-  document
-    .getElementById("registerForm")
-    .classList.remove("hidden");
-};
-
-window.mostrarLogin = () => {
-
-  document
-    .getElementById("registerForm")
-    .classList.add("hidden");
-
-  document
-    .getElementById("loginForm")
-    .classList.remove("hidden");
-};
 window.abrirMaletas = async () => {
 
   esconderTudo();
@@ -1660,12 +783,15 @@ window.abrirMaletas = async () => {
     view.classList.remove("hidden");
   }
 
-  // ✅ aqui chama sua função
   carregarTecnicosMaletas();
 };
+
 async function carregarTecnicosMaletas() {
 
   const container = document.getElementById("listaTecnicosMaletas");
+
+  if (!container) return;
+
   container.innerHTML = "";
 
   const users = await getDocs(collection(db, "users"));
@@ -1677,6 +803,7 @@ async function carregarTecnicosMaletas() {
     if (data.perfil !== "tecnico") return;
 
     const btn = document.createElement("button");
+
     btn.textContent = data.nome;
 
     btn.onclick = () => {
@@ -1686,96 +813,87 @@ async function carregarTecnicosMaletas() {
     container.appendChild(btn);
   });
 }
+
 async function carregarMesesMaletas(uid, nome) {
 
   window.usuarioSelecionadoUID = uid;
 
   const container = document.getElementById("listaMesesMaletas");
+
+  if (!container) return;
+
   container.innerHTML = `<h3>${nome}</h3>`;
 
   const checklists = await getDocs(collection(db, "checklists"));
-const mesesJaAdicionados = new Set();
 
-checklists.forEach(docSnap => {
+  const mesesJaAdicionados = new Set();
 
-  if (!docSnap.id.startsWith(uid)) return;
+  checklists.forEach(docSnap => {
 
-  const mesAno = docSnap.data().mesAno;
+    if (!docSnap.id.startsWith(uid)) return;
 
-  if (mesesJaAdicionados.has(mesAno)) return;
-  mesesJaAdicionados.add(mesAno);
+    const dados = docSnap.data();
 
-  const btn = document.createElement("button");
-  btn.textContent = mesAno;
+    const mesAno = dados.mesAno;
 
-  btn.onclick = async () => {
+    if (!mesAno) return;
 
-    if (window.mesAbertoAtual === mesAno) {
+    if (mesesJaAdicionados.has(mesAno)) return;
 
-      await fecharMes(uid, mesAno);
+    mesesJaAdicionados.add(mesAno);
 
-      const fotos = document.getElementById("fotosMaleta");
-      if (fotos) fotos.innerHTML = "";
+    const btn = document.createElement("button");
 
-      window.mesAbertoAtual = null;
-      return;
-    }
+    btn.textContent = mesAno;
 
-    window.mesAbertoAtual = mesAno;
-    window.mesSelecionado = mesAno;
+    btn.onclick = async () => {
 
-    // ✅ aqui pode usar docSnap
-    mostrarFotosMaleta(docSnap.data().checklist);
-  };
+      if (window.mesAbertoAtual === mesAno) {
 
-  container.appendChild(btn);
-});
-  }
+        await fecharMes(uid, mesAno);
 
-  // ✅ abriu outro mês
-  window.mesAbertoAtual = mesAno;
+        const fotos = document.getElementById("fotosMaleta");
 
-  window.mesSelecionado = mesAno;
+        if (fotos) fotos.innerHTML = "";
+
+        window.mesAbertoAtual = null;
+
+        return;
+      }
+
+      window.mesAbertoAtual = mesAno;
+
+      mostrarFotosMaleta(dados.checklist || []);
+    };
+
+    container.appendChild(btn);
+  });
+}
 
 function mostrarFotosMaleta(checklist) {
 
   const container = document.getElementById("fotosMaleta");
+
+  if (!container) return;
+
   container.innerHTML = "";
 
-  const caixa = checklist.find(
-    item => item.ferramenta === "Foto da caixa"
-  );
+  const caixa = checklist.find(item => item.ferramenta === "Foto da caixa");
 
-  if (!caixa || !caixa.fotos[0]) {
+  if (!caixa || !caixa.fotos || !caixa.fotos[0]) {
     container.innerHTML = "<p>Sem foto da maleta</p>";
     return;
   }
 
   const img = document.createElement("img");
+
   img.src = caixa.fotos[0];
+
   img.style.maxWidth = "300px";
-  img.style.borderRadius = "8px";
-  img.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
-  
+
   container.appendChild(img);
 }
-window.abrirChecklist = () => {
 
-  esconderTudo();
-
-  if (techView) techView.classList.remove("hidden");
-
-  gerarChecklist();
-};
-
-window.abrirAdmin = () => {
-
-  esconderTudo();
-
-  if (adminView) adminView.classList.remove("hidden");
-
-  carregarDashboardAdmin();
-};
 async function fecharMes(uid, mesAno) {
 
   try {
@@ -1785,43 +903,55 @@ async function fecharMes(uid, mesAno) {
       {
         fechado: true
       },
-      { merge: true }
+      {
+        merge: true
+      }
     );
 
   } catch (err) {
     console.error(err);
-    alert("Erro ao fechar mês.");
   }
 }
+
 window.abrirRegras = () => {
 
   esconderTudo();
 
   const view = document.getElementById("regrasView");
-  if (view) view.classList.remove("hidden");
+
+  if (view) {
+    view.classList.remove("hidden");
+  }
 };
 
-function montarMenuPublico() {
+window.mostrarCadastro = () => {
+  document.getElementById("loginForm").classList.add("hidden");
+  document.getElementById("registerForm").classList.remove("hidden");
+};
 
-  if (!menuDropdown) return;
+window.mostrarLogin = () => {
+  document.getElementById("registerForm").classList.add("hidden");
+  document.getElementById("loginForm").classList.remove("hidden");
+};
 
-  menuDropdown.innerHTML = "";
+window.abrirLogin = () => {
 
-  menuPublico.forEach(item => {
+  if (window.usuarioLogadoUID) return;
 
-    const btn = document.createElement("button");
-    btn.textContent = item.nome;
+  const modal = document.getElementById("loginModal");
 
-    btn.onclick = () => window[item.acao]();
+  if (modal) {
+    modal.classList.remove("hidden");
+  }
+};
 
-    menuDropdown.appendChild(btn);
-  });
-}
-window.abrirSobre = () => {
+window.fecharLogin = () => {
 
-  alert("Informações sobre a empresa (em construção)");
-}
-window.abrirContato = () => {
+  const modal = document.getElementById("loginModal");
 
-  alert("Informações de contato (em construção)");
-}
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+};
+document.getElementById("loading")?.classList.remove("hidden");
+document.getElementById("loading")?.classList.add("hidden");
