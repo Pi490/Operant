@@ -728,22 +728,171 @@ window.exportarExcelProblemasPorTecnico = async function () {
   try {
 
     const XLSX = window.XLSX;
-
     if (!XLSX) {
-      alert("Erro ao carregar XLSX");
+      alert("Erro ao carregar biblioteca Excel");
       return;
     }
 
     const wb = XLSX.utils.book_new();
 
-    const ws = XLSX.utils.aoa_to_sheet([
-      ["Sistema", "Status"],
-      ["Exportação", "OK"]
-    ]);
+    const users = await getDocs(collection(db, "users"));
 
-    XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
+    for (const u of users.docs) {
 
-    XLSX.writeFile(wb, `Relatorio_${mesAno}.xlsx`);
+      const userData = u.data();
+      if (userData.perfil !== "tecnico") continue;
+
+      const chk = await getDoc(
+        doc(db, "checklists", `${u.id}_${mesAno}`)
+      );
+
+      let dados = [
+        ["Técnico", "Ferramenta", "Condição", "Reposição", "Motivo", "Foto 1", "Foto 2"]
+      ];
+
+      let corLinha = [];
+
+     if (!chk.exists()) {
+
+  dados.push([userData.nome, "Checklist não enviado", "", "", ""]);
+
+
+  // ✅ marcar essa linha como crítica
+  corLinha.push("pendente");
+      
+      }else {
+
+        const checklist = chk.data().checklist || [];
+
+        const problemas = checklist.filter(r =>
+          !r.estaComTecnico ||
+          !r.boasCondicoes ||
+          r.precisaReposicao
+        );
+
+        // ✅ SE TEM PROBLEMA
+        if (problemas.length > 0) {
+
+          problemas.forEach((p, index) => {
+
+            dados.push([
+              index === 0 ? userData.nome : "",
+              p.ferramenta,
+              p.boasCondicoes ? "Boa" : "Ruim",
+              p.precisaReposicao ? "Sim" : "Não",
+              p.motivo || "",
+              p.fotos?.[0] || "",
+              p.fotos?.[1] || ""
+            ]);
+
+
+            corLinha.push(p.boasCondicoes ? null : "problema");
+          });
+
+        } else {
+
+          // ✅ TUDO OK
+          dados.push([
+            userData.nome,
+            "Status: Tudo OK",
+            "",
+            "",
+            "Seguimento: Imagem da maleta anexada em 'Maletas'"
+          ]);
+        }
+      }
+
+      const ws = XLSX.utils.aoa_to_sheet(dados);
+
+      const range = XLSX.utils.decode_range(ws["!ref"]);
+
+      for (let row = 0; row <= range.e.r; row++) {
+
+  for (let col = 0; col <= range.e.c; col++) {
+
+    const cell = XLSX.utils.encode_cell({ r: row, c: col });
+
+    if (!ws[cell]) ws[cell] = {};
+
+    let estilo = {
+      border: {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" }
+      }
+    };
+
+    // ✅ cabeçalho
+    if (row === 0) {
+      estilo.font = { bold: true, color: { rgb: "FFFFFF" } };
+      estilo.fill = { fgColor: { rgb: "860707" } };
+    }
+
+    estilo.alignment = {
+      wrapText: true
+    };
+
+    if (corLinha[row - 1] === "problema") {
+      estilo.font = { bold: true, color: { rgb: "C00000" } };
+    }
+
+    if (corLinha[row - 1] === "pendente") {
+      estilo.font = { bold: true, color: { rgb: "C00000" } };
+    }
+
+    if (dados[row][1]?.includes("Tudo OK")) {
+      estilo.font = { bold: true, color: { rgb: "006100" } };
+    }
+
+    ws[cell].s = estilo;
+  }
+}
+        for (let i = 1; i < dados.length; i++) {
+
+          const f1 = ws[`F${i + 1}`];
+          const f2 = ws[`G${i + 1}`];
+
+         if (f1 && f1.v) {
+            f1.l = {
+              Target: f1.v,
+              Tooltip: "Abrir imagem"
+            };
+            f1.v = "🔗 Abrir Foto";
+          }
+
+          if (f2 && f2.v) {
+            f2.l = {
+              Target: f2.v,
+              Tooltip: "Abrir imagem"
+            };
+            f2.v = "🔗 Abrir Foto";
+          }
+
+              }
+
+      // ✅ TAMANHO DAS COLUNAS
+     ws["!cols"] = [
+        { wch: 25 },
+        { wch: 35 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 50 },
+        { wch: 20 },
+        { wch: 20 }
+      ];
+
+      XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        userData.nome.substring(0, 30)
+      );
+    }
+
+    XLSX.writeFile(
+      wb,
+      `Relatorio_${mesAno}.xlsx`
+    );
 
   } catch (err) {
     console.error(err);
@@ -954,4 +1103,3 @@ window.fecharLogin = () => {
   }
 };
 document.getElementById("loading")?.classList.remove("hidden");
-document.getElementById("loading")?.classList.add("hidden");
