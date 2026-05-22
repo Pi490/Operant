@@ -151,14 +151,13 @@ document.addEventListener("DOMContentLoaded", () => {
       window.exportarExcelProblemasPorTecnico();
     };
   }
+const fotoCaixa = document.getElementById("foto_caixa");
 
-  const fotoCaixa = document.getElementById("foto_caixa");
-
-  if (fotoCaixa) {
-    fotoCaixa.addEventListener("change", () => {
-      mostrarPreview(fotoCaixa, "preview_caixa");
-    });
-  }
+if (fotoCaixa) {
+  fotoCaixa.addEventListener("change", () => {
+    mostrarPreview(fotoCaixa, "preview_caixa");
+  });
+}
 
   if (headerPerfil) {
     headerPerfil.onclick = e => {
@@ -600,29 +599,46 @@ async function enviarChecklist() {
 
     const checklist = [];
 
+    const ferramentasSemFoto = [];
+    let houveProblema = false;
+
     for (let i = 0; i < ferramentas.length; i++) {
 
-      const estaComTecnico = document.querySelector(`input[name="posse_${i}"]:checked`)?.value === "sim";
+      const estaComTecnico =
+        document.querySelector(`input[name="posse_${i}"]:checked`)?.value === "sim";
 
-      const boasCondicoes = document.querySelector(`input[name="cond_${i}"]:checked`)?.value === "sim";
+      const boasCondicoes =
+        document.querySelector(`input[name="cond_${i}"]:checked`)?.value === "sim";
 
-      const precisaReposicao = document.getElementById(`rep_${i}`)?.checked || false;
+      const precisaReposicao =
+        document.getElementById(`rep_${i}`)?.checked || false;
 
-      const motivo = document.getElementById(`mot_${i}`)?.value || "";
+      const motivo =
+        document.getElementById(`mot_${i}`)?.value || "";
 
       let fotos = [];
 
       if (precisaReposicao) {
 
+        houveProblema = true;
+
         const f1 = document.getElementById(`foto_${i}_1`)?.files[0];
         const f2 = document.getElementById(`foto_${i}_2`)?.files[0];
 
-        if (motivoExigeFoto(motivo) && !f1 && !f2) {
-          alert(`A ferramenta ${ferramentas[i]} exige foto.`);
-          return;
+        const exigeFoto = motivoExigeFoto(motivo);
+
+        // ✅ OBRIGAR FOTO SE QUEBROU / ENFERRUJOU / ENTORTOU
+        if (exigeFoto && !f1 && !f2) {
+
+          ferramentasSemFoto.push(ferramentas[i]);
+          continue;
         }
 
-        fotos = await uploadFotosChecklist(window.usuarioLogadoUID, i, [f1, f2]);
+        fotos = await uploadFotosChecklist(
+          window.usuarioLogadoUID,
+          i,
+          [f1, f2]
+        );
       }
 
       checklist.push({
@@ -635,14 +651,62 @@ async function enviarChecklist() {
       });
     }
 
+    // ✅ BLOQUEIA ENVIO SE FALTA FOTO
+    if (ferramentasSemFoto.length > 0) {
+
+      alert(
+        "❌ As seguintes ferramentas exigem foto:\n\n• " +
+        ferramentasSemFoto.join("\n• ")
+      );
+
+      return;
+    }
+
+    // ✅ SE NÃO HOUVE PROBLEMA → OBRIGA FOTO DA MALETA
+    if (!houveProblema) {
+
+      const fotoCaixa =
+        document.getElementById("foto_caixa")?.files[0];
+if (!houveProblema) {
+
+  const caixaGrupo = document.getElementById("caixaGrupo");
+
+  if (caixaGrupo) {
+    caixaGrupo.classList.remove("hidden");
+  }
+
+}
+      if (!fotoCaixa) {
+
+        alert("📸 Adicione a foto da maleta organizada!");
+
+        return;
+      }
+      const urls = await uploadFotosChecklist(
+        window.usuarioLogadoUID,
+        "caixa",
+        [fotoCaixa]
+      );
+
+      checklist.push({
+        ferramenta: "Foto da caixa",
+        estaComTecnico: true,
+        boasCondicoes: true,
+        precisaReposicao: false,
+        motivo: "Tudo OK",
+        fotos: urls
+      });
+    }
+
     await salvarChecklist(checklist);
 
   } catch (err) {
+
     console.error(err);
+
     alert("Erro ao enviar checklist.");
   }
 }
-
 window.abrirChecklist = () => {
 
   esconderTudo();
@@ -705,20 +769,27 @@ async function carregarDashboardAdmin() {
       classe = temProblema ? "problema" : "ok";
     }
 
-    const tr = document.createElement("tr");
+ const tr = document.createElement("tr");
 
-    tr.innerHTML = `
-      <td>
-        <button class="btn-tecnico">
-          ${userData.nome}
-        </button>
-      </td>
+tr.innerHTML = `
+<td>
+  <button
+    class="btn-tecnico"
+    onclick="abrirDetalhesTecnico(
+      '${userData.nome}',
+      '${userData.email || ""}',
+      '${userData.telefone || ""}',
+      '${userData.teams || ""}'
+    )"
+  >
+    ${userData.nome}
+  </button>
+</td>
 
-      <td class="${classe}">
-        ${status}
-      </td>
-    `;
-
+<td class="${classe}">
+  ${status}
+</td>
+`;
     tbody.appendChild(tr);
   }
 }
@@ -1103,3 +1174,92 @@ window.fecharLogin = () => {
   }
 };
 document.getElementById("loading")?.classList.remove("hidden");
+
+window.abrirDetalhesTecnico = function (
+  nome,
+  email,
+  telefone,
+  teams
+) {
+
+  const modal = document.getElementById("modalTecnico");
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+
+  document.getElementById("modalEmail").value = email;
+  document.getElementById("modalTelefone").value = telefone;
+  document.getElementById("modalTeams").value = teams;
+
+  const link = document.getElementById("linkTeams");
+  if (link) link.href = teams;
+};
+
+
+window.fecharModalTecnico = function () {
+
+  const modal = document.getElementById("modalTecnico");
+
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+};
+window.abrirConfiguracoes = () => {
+
+  esconderTudo();
+
+  if (settingsView) {
+    settingsView.classList.remove("hidden");
+  }
+
+  if (!window.dadosUsuarioAtual) return;
+
+  document.getElementById("meuEmail").value =
+    window.dadosUsuarioAtual.email || "";
+
+  document.getElementById("meuTelefone").value =
+    window.dadosUsuarioAtual.telefone || "";
+
+  document.getElementById("meuTeams").value =
+    window.dadosUsuarioAtual.teams || "";
+};
+const btnSalvar =
+  document.getElementById("btnSalvarDadosTecnico");
+
+if (btnSalvar) {
+
+  btnSalvar.onclick = async () => {
+
+    try {
+
+      const telefone =
+        document.getElementById("meuTelefone").value;
+
+      const teams =
+        document.getElementById("meuTeams").value;
+
+      await setDoc(
+        doc(db, "users", window.usuarioLogadoUID),
+        { telefone, teams },
+        { merge: true }
+      );
+
+      alert("✅ Dados atualizados!");
+
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao salvar.");
+    }
+  };
+}
+window.voltarDoSettings = () => {
+
+  if (settingsView) {
+    settingsView.classList.add("hidden");
+  }
+
+  // ✅ volta pro fluxo normal
+  if (window.usuarioLogadoUID) {
+    carregarPerfil(window.usuarioLogadoUID);
+  }
+};
