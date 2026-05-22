@@ -25,60 +25,77 @@ const agora = new Date();
 
 const mesAno = `${agora.getMonth() + 1}-${agora.getFullYear()}`;
 
-const ferramentas = [
-  "Alicate de bico",
-  "Alicate bomba dágua",
-  "Alicate de corte",
-  "Alicate de crimpar terminal",
-  "Alicate de pressão",
-  "Alicate descascador de fio elétrico",
-  "Alicate p/ anel trava ext.",
-  "Alicate para anel trava ext.",
-  "Alicate para anel trava int.",
-  "Alicate universal",
-  "Arco de serra",
-  "Caixa de ferramenta",
-  "Canhão 6mm",
-  "Canhão 8mm",
-  "Chave Allen 12mm",
-  "Chave Allen 14mm",
-  "Chave Allen 16mm",
-  "Chave Allen ½’’",
-  "Chave Allen 5/8’’",
-  "Chave Allen 9/16’’",
-  "Chave ajustável 24” abertura 60mm",
-  "Chave canhão 8mm",
-  "Chave combinada 10mm",
-  "Chave combinada 13mm",
-  "Chave combinada 17mm",
-  "Chave combinada 19mm",
-  "Chave combinada 22mm",
-  "Chave combinada 24mm",
-  "Chave combinada 30mm",
-  "Chave combinada 32mm",
-  "Chave combinada 36mm",
-  "Chave de cano 16",
-  "Chave Grifo",
-  "Escova de aço",
-  "Ferro de Solda 30W com suporte 9XC EDA",
-  "Jogo ch. de fenda e philips",
-  "Jogo chave Torx",
-  "Jogo de chave catraca 8 a 24mm",
-  "Jogo de chave combinada 10 a 50 mm",
-  "Jogo saca pinos paralelos",
-  "Jogo soquete métrico estriado",
-  "Marreta 01 kg",
-  "Martelo",
-  "Martelo nylon",
-  "Medidor de temperatura a laser",
-  "Multímetro digital",
-  "Paquímetro",
-  "Soquete estriado",
-  "Soquete tipo Allen",
-  "Talhadeira 5 x 150",
-  "Trena 05m",
-  "Torno de bancada"
-];
+const ferramentas = {
+
+  "Alicates": [
+    "Alicate de bico",
+    "Alicate bomba dágua",
+    "Alicate de corte",
+    "Alicate de crimpar terminal",
+    "Alicate de pressão",
+    "Alicate descascador de fio elétrico",
+    "Alicate p/ anel trava ext.",
+    "Alicate para anel trava ext.",
+    "Alicate para anel trava int.",
+    "Alicate universal"
+  ],
+
+  "Chaves": [
+    "Chave Allen 12mm",
+    "Chave Allen 14mm",
+    "Chave Allen 16mm",
+    "Chave Allen ½’’",
+    "Chave Allen 5/8’’",
+    "Chave Allen 9/16’’",
+    "Chave ajustável 24” abertura 60mm",
+    "Chave canhão 8mm",
+    "Chave combinada 10mm",
+    "Chave combinada 13mm",
+    "Chave combinada 17mm",
+    "Chave combinada 19mm",
+    "Chave combinada 22mm",
+    "Chave combinada 24mm",
+    "Chave combinada 30mm",
+    "Chave combinada 32mm",
+    "Chave combinada 36mm",
+    "Chave de cano 16",
+    "Chave Grifo",
+    "Jogo ch. de fenda e philips",
+    "Jogo chave Torx",
+    "Jogo de chave catraca 8 a 24mm",
+    "Jogo de chave combinada 10 a 50 mm"
+  ],
+
+  "Medição": [
+    "Medidor de temperatura a laser",
+    "Multímetro digital",
+    "Paquímetro",
+    "Trena 05m"
+  ],
+
+  "Eletrônico": [
+    "Ferro de Solda 30W com suporte 9XC EDA"
+  ],
+
+  "Outros": [
+    "Arco de serra",
+    "Caixa de ferramenta",
+    "Canhão 6mm",
+    "Canhão 8mm",
+    "Escova de aço",
+    "Jogo saca pinos paralelos",
+    "Jogo soquete métrico estriado",
+    "Marreta 01 kg",
+    "Martelo",
+    "Martelo nylon",
+    "Soquete estriado",
+    "Soquete tipo Allen",
+    "Talhadeira 5 x 150",
+    "Torno de bancada"
+  ]
+};
+
+const ferramentasFlat = Object.values(ferramentas).flat();
 
 let loginView;
 let registerView;
@@ -260,7 +277,8 @@ async function register() {
       telefone,
       teams,
       perfil
-    });
+    }
+  );
 
     alert("✅ Cadastro realizado!");
 
@@ -409,108 +427,105 @@ function atualizarFotos(index) {
 function gerarChecklist() {
 
   const form = document.getElementById("checklistForm");
-
   if (!form) return;
 
   form.innerHTML = "";
 
-  ferramentas.forEach((f, i) => {
+  let indexGlobal = 0;
 
-    const html = `
-      <details class="ferramenta-item">
+  Object.entries(ferramentas).forEach(([grupo, lista]) => {
 
-        <summary class="ferramenta-header">
-          ${f}
-        </summary>
-
-        <div class="ferramenta-detalhes">
-
-          <div class="pergunta-grupo">
-            <p>Está com o técnico?</p>
-
-            <div class="opcoes-horizontal">
-
-              <label>
-                <input type="radio" name="posse_${i}" value="sim" checked>
-                Sim
-              </label>
-
-              <label>
-                <input type="radio" name="posse_${i}" value="nao">
-                Não
-              </label>
-
-            </div>
-          </div>
-
-          <div class="pergunta-grupo">
-            <p>Está em boas condições?</p>
-
-            <div class="opcoes-horizontal">
-
-              <label>
-                <input type="radio" name="cond_${i}" value="sim" checked>
-                Boa
-              </label>
-
-              <label>
-                <input type="radio" name="cond_${i}" value="nao">
-                Ruim
-              </label>
-
-            </div>
-          </div>
-
-          <div class="pergunta-grupo">
-            <p>Precisa de reposição?</p>
-
-            <label class="checkbox-linha">
-              <input type="checkbox" id="rep_${i}">
-              Sim
-            </label>
-          </div>
-
-          <div class="pergunta-grupo">
-            <input type="text" id="mot_${i}" placeholder="Motivo">
-          </div>
-
-          <div class="pergunta-grupo fotos-grupo hidden" id="fotos_${i}">
-
-            <p>📸 Adicione fotos</p>
-
-            <input type="file" id="foto_${i}_1" accept="image/*">
-            <img id="preview_${i}_1" class="preview-foto hidden">
-
-            <input type="file" id="foto_${i}_2" accept="image/*">
-            <img id="preview_${i}_2" class="preview-foto hidden">
-
-          </div>
-        </div>
+    const grupoHTML = `
+      <details class="grupo-bloco">
+        <summary class="grupo-titulo">${grupo}</summary>
+        <div id="grupo_${grupo}"></div>
       </details>
     `;
 
-    form.insertAdjacentHTML("beforeend", html);
+    form.insertAdjacentHTML("beforeend", grupoHTML);
 
-    const rep = document.getElementById(`rep_${i}`);
+    const container = document.getElementById(`grupo_${grupo}`);
 
-    if (rep) {
-      rep.addEventListener("change", () => atualizarFotos(i));
-    }
+    lista.forEach((f) => {
 
-    const foto1 = document.getElementById(`foto_${i}_1`);
-    const foto2 = document.getElementById(`foto_${i}_2`);
+      const i = indexGlobal++;
 
-    if (foto1) {
-      foto1.addEventListener("change", () => {
-        mostrarPreview(foto1, `preview_${i}_1`);
-      });
-    }
+      const html = `
+        <details class="ferramenta-item">
 
-    if (foto2) {
-      foto2.addEventListener("change", () => {
-        mostrarPreview(foto2, `preview_${i}_2`);
-      });
-    }
+          <summary class="ferramenta-header">
+            ${f}
+          </summary>
+
+          <div class="ferramenta-detalhes">
+
+            <div class="pergunta-grupo">
+              <p>Está com o técnico?</p>
+              <div class="opcoes-horizontal">
+            <label><input type="radio" name="posse_${i}" value="sim" checked> Sim</label>
+            <label><input type="radio" name="posse_${i}" value="nao"> Não</label>
+          </div>
+            </div>
+
+            <div class="pergunta-grupo">
+              <p>Está em boas condições?</p>
+              <div class="opcoes-horizontal">
+              <label><input type="radio" name="cond_${i}" value="sim" checked> Boa</label>
+              <label><input type="radio" name="cond_${i}" value="nao"> Ruim</label>
+            </div>
+
+            <div class="pergunta-grupo">
+              <p>Precisa de reposição?</p>
+
+              <label class="checkbox-linha">
+                <input type="checkbox" id="rep_${i}">
+                Sim
+              </label>
+            </div>
+
+            <div class="pergunta-grupo">
+              <input type="text" id="mot_${i}" placeholder="Motivo">
+            </div>
+
+            <div class="pergunta-grupo fotos-grupo hidden" id="fotos_${i}">
+              <p>📸 Adicione fotos</p>
+
+              <input type="file" id="foto_${i}_1" accept="image/*">
+              <img id="preview_${i}_1" class="preview-foto hidden">
+
+              <input type="file" id="foto_${i}_2" accept="image/*">
+              <img id="preview_${i}_2" class="preview-foto hidden">
+            </div>
+
+          </div>
+        </details>
+      `;
+
+      container.insertAdjacentHTML("beforeend", html);
+
+      // ✅ mantém comportamento de fotos
+      const rep = document.getElementById(`rep_${i}`);
+      if (rep) {
+        rep.addEventListener("change", () => atualizarFotos(i));
+      }
+
+      const f1 = document.getElementById(`foto_${i}_1`);
+      const f2 = document.getElementById(`foto_${i}_2`);
+
+      if (f1) {
+        f1.addEventListener("change", () => {
+          mostrarPreview(f1, `preview_${i}_1`);
+        });
+      }
+
+      if (f2) {
+        f2.addEventListener("change", () => {
+          mostrarPreview(f2, `preview_${i}_2`);
+        });
+      }
+
+    });
+
   });
 }
 
@@ -602,7 +617,7 @@ async function enviarChecklist() {
     const ferramentasSemFoto = [];
     let houveProblema = false;
 
-    for (let i = 0; i < ferramentas.length; i++) {
+   for (let i = 0; i < ferramentasFlat.length; i++) {
 
       const estaComTecnico =
         document.querySelector(`input[name="posse_${i}"]:checked`)?.value === "sim";
@@ -620,29 +635,31 @@ async function enviarChecklist() {
 
       if (precisaReposicao) {
 
-        houveProblema = true;
+          houveProblema = true;
 
-        const f1 = document.getElementById(`foto_${i}_1`)?.files[0];
-        const f2 = document.getElementById(`foto_${i}_2`)?.files[0];
+          const f1 = document.getElementById(`foto_${i}_1`)?.files[0];
+          const f2 = document.getElementById(`foto_${i}_2`)?.files[0];
 
-        const exigeFoto = motivoExigeFoto(motivo);
+          const exigeFoto = motivoExigeFoto(motivo);
 
-        // ✅ OBRIGAR FOTO SE QUEBROU / ENFERRUJOU / ENTORTOU
-        if (exigeFoto && !f1 && !f2) {
+          // ✅ AQUI ESTÁ A REGRA QUE SUMIU
+         if (exigeFoto && !f1 && !f2) {
 
-          ferramentasSemFoto.push(ferramentas[i]);
-          continue;
+  ferramentasSemFoto.push(ferramentasFlat[i]);
+  continue;
+            alert(`ferramenta: ${ferramentasFlat[i]} exige foto devido ao motivo informado.`);
+            return;
+          }
+
+          fotos = await uploadFotosChecklist(
+            window.usuarioLogadoUID,
+            i,
+            [f1, f2]
+          );
         }
 
-        fotos = await uploadFotosChecklist(
-          window.usuarioLogadoUID,
-          i,
-          [f1, f2]
-        );
-      }
-
       checklist.push({
-        ferramenta: ferramentas[i],
+        ferramenta: ferramentasFlat[i],
         estaComTecnico,
         boasCondicoes,
         precisaReposicao,
@@ -1193,7 +1210,7 @@ window.abrirDetalhesTecnico = function (
   nome,
   email,
   telefone,
-  teams
+  teams,
 ) {
 
   const modal = document.getElementById("modalTecnico");
