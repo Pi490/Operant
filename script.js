@@ -364,7 +364,7 @@ const menuPorPerfil = {
     { nome: "Maletas", acao: "abrirMaletas" },
     { nome: "Estatísticas", acao: "abrirEstatisticas" },
     {nome: "Documentação", acao: "abrirDocumentacao"}, 
-    {nome: "Aprovar Compras", acao: "abrir AprovarCompras"}
+    {nome: "Aprovar Compras", acao: "abrirAprovarCompras"}
   ],
 
   tecnico: [
@@ -733,6 +733,10 @@ window.abrirAdmin = () => {
 
 async function carregarDashboardAdmin() {
 
+let ok = 0;
+let problemas = 0;
+let pendentes = 0;
+
   if (dashboardCarregado) return;
   dashboardCarregado = true;
 
@@ -743,55 +747,65 @@ async function carregarDashboardAdmin() {
 
   const users = await getDocs(collection(db, "users"));
 
-  for (const u of users.docs) {
+for (const u of users.docs) {
 
-    const userData = u.data();
-    if (userData.perfil !== "tecnico") continue;
+  const userData = u.data();
+  if (userData.perfil !== "tecnico") continue;
 
-    const chk = await getDoc(
-      doc(db, "checklists", `${u.id}_${mesAno}`)
+  let status = "Pendente";
+  let classe = "pendente";
+
+  const chk = await getDoc(
+    doc(db, "checklists", `${u.id}_${mesAno}`)
+  );
+
+  if (chk.exists()) {
+
+    const checklist = chk.data().checklist || [];
+
+    const temProblema = checklist.some(r =>
+      !r.estaComTecnico ||
+      !r.boasCondicoes ||
+      r.precisaReposicao
     );
 
-    let status = "Pendente";
-    let classe = "pendente";
+    status = temProblema ? "Problemas" : "OK";
+    classe = temProblema ? "problema" : "ok";
+  }
 
-    if (chk.exists()) {
+  // ✅ CONTAGEM AQUI
+  if (status === "OK") ok++;
+  else if (status === "Problemas") problemas++;
+  else pendentes++;
 
-      const checklist = chk.data().checklist || [];
-
-      const temProblema = checklist.some(r =>
-        !r.estaComTecnico ||
-        !r.boasCondicoes ||
-        r.precisaReposicao
-      );
-
-      status = temProblema ? "Problemas" : "OK";
-      classe = temProblema ? "problema" : "ok";
-    }
-
- const tr = document.createElement("tr");
+  const tr = document.createElement("tr");
 
 tr.innerHTML = `
-<td>
-  <button
-    class="btn-tecnico"
-    onclick="abrirDetalhesTecnico(
-      '${userData.nome}',
-      '${userData.email || ""}',
-      '${userData.telefone || ""}',
-      '${userData.teams || ""}'
-    )"
-  >
-    ${userData.nome}
-  </button>
-</td>
+  <td>
+    <button
+      class="btn-tecnico"
+      onclick="abrirDetalhesTecnico(
+        '${userData.nome}',
+        '${userData.email || ""}',
+        '${userData.telefone || ""}',
+        '${userData.teams || ""}'
+      )"
+    >
+      ${userData.nome}
+    </button>
+  </td>
 
-<td class="${classe}">
-  ${status}
-</td>
+  <td class="${classe}">
+    ${status}
+  </td>
 `;
-    tbody.appendChild(tr);
-  }
+  tbody.appendChild(tr);
+}
+
+  document.getElementById("countOk").textContent = ok;
+  document.getElementById("countProblemas").textContent = problemas;
+  document.getElementById("countPendente").textContent = pendentes;
+
 }
 
 window.exportarExcelProblemasPorTecnico = async function () {
