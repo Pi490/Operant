@@ -291,7 +291,15 @@
       >
 
     </div>
+<div id="caixaGrupo" class="hidden">
 
+  <p><strong>📸 Foto da maleta organizada</strong></p>
+
+  <input type="file" id="foto_caixa" accept="image/*">
+
+  <img id="preview_caixa" class="preview-foto hidden">
+
+</div>
     <button
       id="btnEnviarChecklist"
       type="button"
@@ -453,14 +461,10 @@
 
     <div class="modal-actions">
 
-      <button onclick="fecharModalTecnico()">
-        Fechar
-      </button>
-
+      <span class="modal-close" onclick="fecharModalTecnico()">✖</span>
     </div>
 
   </div>
-<div id="loading">Carregando...</div>
 </div>
 <script src="https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
