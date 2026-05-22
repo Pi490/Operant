@@ -4,17 +4,16 @@ body {
   font-family: Arial, sans-serif;
   background: #f3f4f6;
   margin: 0;
-  padding: 0;
+}
+
+.hidden {
+  display: none !important;
 }
 
 #app {
   max-width: 900px;
   margin: 20px auto;
   padding: 0 10px;
-}
-
-.hidden {
-  display: none !important;
 }
 
 /* ===== CARDS ===== */
@@ -51,69 +50,89 @@ button:hover {
   background: #1e4ed8;
 }
 
-.link {
-  margin-top: 10px;
-  color: #2563eb;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: underline;
-}
-
 /* ===== HEADER ===== */
 
 #mainHeader {
-  width: 100%;
-  background: #860707;
+  background: linear-gradient(90deg, #630404, #860707);
   color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+/* área interna */
 .header-inner {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 10px 25px;
+  padding: 8px 25px; /* ✅ menor */
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.header-title {
-  font-size: 25px;
-  font-weight: bold;
+/* logo + título */
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
+.logo-img {
+  width: 130px;
+}
+
+
+.header-title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+
+/* lado direito */
 .header-right {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 5px;
 }
 
+/* perfil */
 .header-perfil {
-  font-size: 15px;
   font-weight: bold;
   cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.2s;
 }
 
-/* ===== BOTÃO ⋮ ===== */
+.header-perfil:hover {
+  background: rgba(255,255,255,0.15);
+}
 
+/* botão ⋮ */
+.menu-btn {
+  background: transparent;
+  font-size: 20px;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.menu-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+/* ===== MENUS ===== */
+
+.perfil-wrapper,
 .menu-wrapper {
   position: relative;
 }
 
 .menu-btn {
   background: transparent;
-  color: rgb(255, 255, 255);
+  color: white;
   font-size: 20px;
-  border: none;
-  cursor: pointer;
 }
-
-/* ===== PERFIL ===== */
-
-.perfil-wrapper {
-  position: relative; /* ✅ IMPORTANTÍSSIMO */
-}
-
-/* ===== MENUS FLUTUANTES (ESTILO COMUM) ===== */
 
 .perfil-menu,
 .menu-dropdown {
@@ -124,40 +143,32 @@ button:hover {
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   z-index: 2000;
   min-width: 160px;
-  overflow: hidden;
 }
 
-/* ===== BOTÕES DOS MENUS ===== */
+.menu-dropdown {
+  right: 0;
+}
+
+.perfil-menu {
+  left: 50%;
+  transform: translateX(-50%);
+}
 
 .perfil-menu button,
 .menu-dropdown button {
   width: 100%;
+  text-align: left;
+  padding: 10px 14px;
   background: none;
   border: none;
-  padding: 10px 14px;
-  text-align: left;
-  cursor: pointer;
   font-weight: bold;
   color: #333;
 }
 
 .perfil-menu button:hover,
 .menu-dropdown button:hover {
-  background: #ff0000;
+  background: red;
   color: white;
-}
-
-/* ===== POSICIONAMENTO ESPECÍFICO ===== */
-
-/* Menu do perfil → embaixo do "tecnico" */
-.perfil-menu {
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* Menu dos três pontos → alinhado ao ícone ⋮ */
-.menu-dropdown {
-  right: 0;
 }
 
 /* ===== CHECKLIST ===== */
@@ -166,8 +177,23 @@ button:hover {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 20px 0;
 }
+
+/* GRUPOS */
+
+.grupo-bloco {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.grupo-titulo {
+  padding: 10px;
+  font-weight: bold;
+  background: #f1f1f1;
+}
+
+/* FERRAMENTA */
 
 .ferramenta-item {
   border: 1px solid #e0e0e0;
@@ -181,163 +207,105 @@ button:hover {
 }
 
 .ferramenta-header {
-  padding: 12px 15px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.ferramenta-header:hover {
-  background: #e8e8e8;
-}
-
-.ferramenta-detalhes {
-  padding: 15px;
-}
-
-.pergunta-grupo {
-  margin-bottom: 12px;
-}
-
-.pergunta-grupo p {
-  font-weight: 600;
-  font-size: 13px;
-}
-.opcoes-horizontal {
-  display: flex;
-  gap: 20px;
-}
-
-.opcoes-horizontal label {
+  padding: 10px 12px;
   cursor: pointer;
 }
 
-.checkbox-linha {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 4px;
-}
-/* Reposição alinhada à esquerda e compacta */
-.pergunta-reposicao {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.pergunta-reposicao label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-}
-
-/* Reduz a altura geral da seção */
 .ferramenta-detalhes {
-  padding: 12px 15px;
+  padding: 10px 12px;
 }
+
+/* PERGUNTAS */
 
 .pergunta-grupo {
   margin-bottom: 8px;
-}
-
-.pergunta-grupo {
-  margin-bottom: 10px;
 }
 
 .pergunta-grupo p {
   margin: 6px 0;
-  font-weight: 600;
   font-size: 13px;
+  font-weight: 600;
 }
+
+/* OPÇÕES */
 
 .opcoes-horizontal {
   display: flex;
-  gap: 20px;
+  gap: 10px;
   align-items: center;
 }
 
 .opcoes-horizontal label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
 }
-.ferramenta-detalhes {
-  padding: 10px 15px;
+
+/* CHECKBOX */
+
+.checkbox-linha {
+  display: inline-flex; /* ✅ ESSA LINHA MUDA TUDO */
+  align-items: center;
+  gap: 6px;
+}
+.checkbox-linha input {
+  margin: 0;
 }
 
-.pergunta-grupo {
-  margin-bottom: 8px;
-}
+/* FOTOS */
 
 .fotos-grupo {
-  background: #fff;
+  background: white;
   border: 1px dashed #ccc;
   border-radius: 6px;
-  padding: 10px;
+  padding: 8px;
 }
 
-.fotos-grupo p {
-  margin: 0 0 8px 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-}
-
-.fotos-grupo input[type="file"] {
-  margin-top: 6px;
-}
 .preview-foto {
   max-width: 160px;
-  max-height: 160px;
-  object-fit: cover;
-  margin-top: 8px;
+  margin-top: 6px;
   border-radius: 6px;
   border: 1px solid #ccc;
 }
 
-.tecnico-hover {
-  cursor: pointer;
+/* STATUS */
+
+.ok {
+  color: green;
+  font-weight: bold;
 }
+
+.problema {
+  color: #d97706;
+  font-weight: bold;
+}
+
+.pendente {
+  color: red;
+  font-weight: bold;
+}
+
+/* MODAL */
 
 .modal {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 999;
+  align-items: center;
 }
 
-.modal.hidden{
-  display:none;
-}
-
-.modal-content{
-  background:white;
-  padding:25px;
-  border-radius:12px;
-  width:350px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.modal-content input{
-  padding:10px;
-}
-
-.modal-actions{
-  display:flex;
-  gap:10px;
-  margin-top:10px;
-}
-.modal-content {
-  position: relative;
+.modal.hidden {
+  display: none;
 }
 
 .modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 350px;
   position: relative;
 }
 
@@ -346,151 +314,50 @@ button:hover {
   top: 10px;
   right: 15px;
   font-size: 22px;
-  color: #860707;
   cursor: pointer;
-  user-select: none;
+}
+.grupo-bloco {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: #fafafa;
 }
 
-
-.btn-tecnico {
-  background: none;
-  border: none;
-  color: #0b57d0;
-  cursor: pointer;
-  font-size: 15px;
-}
-
-/* remove seleção azul */
-.btn-tecnico:focus,
-.btn-tecnico:focus-visible,
-.btn-tecnico:active {
-  outline: none;
-  box-shadow: none;
-  background: none;
-}
-
-/* opcional: hover bonito */
-.btn-tecnico:hover {
-  text-decoration: underline;
-}
-.btn-tecnico {
-  background: transparent !important;
-}
-
-.btn-tecnico:active {
-  background: transparent !important;
-}
-
-.ok{
-  color:green;
-  font-weight:bold;
-}
-
-.problema{
-  color:#d97706;
-  font-weight:bold;
-}
-
-.pendente{
-  color:red;
-  font-weight:bold;
-}
-
-
-.home-content {
-  max-width: 700px;
-  text-align: left;
-}
-
-.home-content h2 {
-  font-size: 28px;
-  margin-bottom: 20px;
-}
-
-.home-content p {
-  margin-bottom: 15px;
-  line-height: 1.5;
-}
-
-.logo-area {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-img {
-  width: 130px;
-}
-
-.login-link {
-  cursor: pointer;
+.grupo-titulo {
+  padding: 12px;
   font-weight: bold;
-}
-
-#listaTecnicosMaletas button {
-  margin-bottom: 10px;
-}
-#regrasTecnicoView {
-  margin-bottom: 20px;
-  border-left: 4px solid #860707;
-}
-#regrasView {
-  margin-bottom: 20px;
-  border-left: 4px solid #860707;
-
-}
-
-#listaTecnicosMaletas button,
-#listaMesesMaletas button {
-  display: block;
-  text-align: left;   /* ✅ alinhar texto */
-  margin: 2px 0;      /* ✅ bem juntinho */
-  padding: 0;         /* ✅ remove altura extra */
-  line-height: 1.2;   /* ✅ compacto */
-
-  background: none;
-  border: none;
-  color: #1e73ff;
-  cursor: pointer;
-}
-#listaMesesMaletas {
-  margin-left: 10px;
-}
-#maletasView {
-  text-align: left; /* ✅ joga tudo pra esquerda */
-}
-
-#homeView {
-   border-left: 4px solid #860707;
-}
-
-#regrasView ul,
-#regrasTecnicoView ul
-#homeView ul {
-  padding-left: 20px;
-  margin-bottom: 10px;
-
-}
-
-details {
-  contain: content;
-}
-
-img {
-  display: block;
-  max-width: 100%;
+  background: #e5e7eb;
+  border-radius: 8px;
 }
 
 .ferramenta-item {
-  will-change: auto;
+  border-radius: 6px;
+  margin: 6px;
+  border: 1px solid #ddd;
+  background: #fff;
+  transition: all 0.2s ease;
 }
 
-.modal {
-  backdrop-filter: blur(3px);
+.ferramenta-item:hover {
+  background: #f5f5f5;
+}
+.ferramenta-item[open] {
+  background: #eef5ff;
+  border-color: #2563eb;
 }
 
-button,
-input,
-select {
-  transform: translateZ(0);
+.ferramenta-header {
+  padding: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.card {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+#regrasView,
+#regrasTecnicoView,
+#homeView {
+  border-left: 4px solid #860707;
+  padding-left: 16px; /* ✅ dá respiro do texto */
 }
