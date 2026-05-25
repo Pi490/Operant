@@ -128,6 +128,9 @@ function esconderTudo() {
 
   const regrasTec = document.getElementById("regrasTecnicoView");
   if (regrasTec) regrasTec.classList.add("hidden");
+
+  const compras = document.getElementById("comprasView");
+  if (compras) compras.classList.add("hidden");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -208,6 +211,7 @@ if (fotoCaixa) {
     if (perfilMenu) perfilMenu.classList.add("hidden");
     if (menuDropdown) menuDropdown.classList.add("hidden");
   };
+  carregarGestores();
 });
 
 window.showLogin = function () {
@@ -271,14 +275,16 @@ async function register() {
 
     const cred = await createUserWithEmailAndPassword(auth, email, senha);
 
+   const gestorUid = document.getElementById("regGestor").value;
     await setDoc(doc(db, "users", cred.user.uid), {
       nome,
       email,
       telefone,
       teams,
-      perfil
-    }
-  );
+      perfil,
+      gestorUid
+    });
+
 
     alert("✅ Cadastro realizado!");
 
@@ -619,54 +625,57 @@ async function enviarChecklist() {
 
    for (let i = 0; i < ferramentasFlat.length; i++) {
 
-      const estaComTecnico =
-        document.querySelector(`input[name="posse_${i}"]:checked`)?.value === "sim";
+  const estaComTecnico =
+    document.querySelector(`input[name="posse_${i}"]:checked`)?.value === "sim";
 
-      const boasCondicoes =
-        document.querySelector(`input[name="cond_${i}"]:checked`)?.value === "sim";
+  const boasCondicoes =
+    document.querySelector(`input[name="cond_${i}"]:checked`)?.value === "sim";
 
-      const precisaReposicao =
-        document.getElementById(`rep_${i}`)?.checked || false;
+  const precisaReposicao =
+    document.getElementById(`rep_${i}`)?.checked || false;
 
-      const motivo =
-        document.getElementById(`mot_${i}`)?.value || "";
+  const motivo =
+    document.getElementById(`mot_${i}`)?.value || "";
 
-      let fotos = [];
+  let fotos = [];
 
-      if (precisaReposicao) {
+  // ✅ AQUI está a correção do seu bug
+  if (
+    !estaComTecnico ||
+    !boasCondicoes ||
+    precisaReposicao
+  ) {
+    houveProblema = true;
+  }
 
-          houveProblema = true;
+  if (precisaReposicao) {
 
-          const f1 = document.getElementById(`foto_${i}_1`)?.files[0];
-          const f2 = document.getElementById(`foto_${i}_2`)?.files[0];
+    const f1 = document.getElementById(`foto_${i}_1`)?.files[0];
+    const f2 = document.getElementById(`foto_${i}_2`)?.files[0];
 
-          const exigeFoto = motivoExigeFoto(motivo);
+    const exigeFoto = motivoExigeFoto(motivo);
 
-          // ✅ AQUI ESTÁ A REGRA QUE SUMIU
-         if (exigeFoto && !f1 && !f2) {
-
-  ferramentasSemFoto.push(ferramentasFlat[i]);
-  continue;
-            alert(`ferramenta: ${ferramentasFlat[i]} exige foto devido ao motivo informado.`);
-            return;
-          }
-
-          fotos = await uploadFotosChecklist(
-            window.usuarioLogadoUID,
-            i,
-            [f1, f2]
-          );
-        }
-
-      checklist.push({
-        ferramenta: ferramentasFlat[i],
-        estaComTecnico,
-        boasCondicoes,
-        precisaReposicao,
-        motivo,
-        fotos
-      });
+    if (exigeFoto && !f1 && !f2) {
+      ferramentasSemFoto.push(ferramentasFlat[i]);
+      continue;
     }
+
+    fotos = await uploadFotosChecklist(
+      window.usuarioLogadoUID,
+      i,
+      [f1, f2]
+    );
+}
+
+checklist.push({
+    ferramenta: ferramentasFlat[i],
+    estaComTecnico,
+    boasCondicoes,
+    precisaReposicao,
+    motivo,
+    fotos
+  });
+   }
 
     // ✅ BLOQUEIA ENVIO SE FALTA FOTO
     if (ferramentasSemFoto.length > 0) {
@@ -1293,4 +1302,139 @@ window.voltarDoSettings = () => {
   if (window.usuarioLogadoUID) {
     carregarPerfil(window.usuarioLogadoUID);
   }
+};
+
+async function carregarGestores() {
+
+  const select = document.getElementById("regGestor");
+  if (!select) return;
+
+  const users = await getDocs(collection(db, "users"));
+
+  users.forEach(u => {
+    const data = u.data();
+
+    if (data.perfil === "admin") { // ou gestor
+
+      const option = document.createElement("option");
+      option.value = u.id;
+      option.textContent = data.nome;
+
+      select.appendChild(option);
+    }
+  });
+}
+window.abrirCompras = () => {
+
+  esconderTudo();
+
+  const view = document.getElementById("comprasView");
+  view.classList.remove("hidden");
+
+  view.innerHTML = `
+    <h3>Solicitar Compra</h3>
+
+    <select id="compFerramenta">
+      ${ferramentasFlat.map(f => `<option>${f}</option>`).join("")}
+    </select>
+
+    <input id="compMotivo" placeholder="Motivo (quebrou, perdeu...)" />
+
+    <button onclick="enviarCompra()">Solicitar</button>
+  `;
+};
+
+window.enviarCompra = async () => {
+
+  const ferramenta = document.getElementById("compFerramenta").value;
+  const motivo = document.getElementById("compMotivo").value;
+
+  const userSnap = await getDoc(doc(db, "users", window.usuarioLogadoUID));
+  const userData = userSnap.data();
+
+  await setDoc(
+    doc(collection(db, "compras")),
+    {
+      tecnicoUid: window.usuarioLogadoUID,
+      tecnicoNome: userData.nome,
+      gestorUid: userData.gestorUid,
+      ferramenta,
+      motivo,
+      status: "pendente",
+      prazo: null,
+      localRetirada: null,
+      criadoEm: new Date()
+    }
+  );
+
+  alert("✅ Solicitação enviada!");
+};
+window.abrirAprovarCompras = async () => {
+
+  esconderTudo();
+
+  const adminView = document.getElementById("adminView");
+  adminView.classList.remove("hidden");
+
+  const tbody = document.querySelector("#tabelaTecnicos tbody");
+  tbody.innerHTML = "";
+
+  const compras = await getDocs(collection(db, "compras"));
+
+  compras.forEach(docSnap => {
+
+    const data = docSnap.data();
+
+    // ✅ só mostra pro gestor correto
+    if (data.gestorUid !== window.usuarioLogadoUID) return;
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${data.tecnicoNome}</td>
+      <td>${data.ferramenta}</td>
+      <td>${data.motivo}</td>
+      <td>
+        <input placeholder="Prazo" id="prazo_${docSnap.id}" />
+
+        <input placeholder="Local retirada" id="local_${docSnap.id}" />
+
+        <button onclick="aprovarCompra('${docSnap.id}')">✅</button>
+        <button onclick="reprovarCompra('${docSnap.id}')">❌</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+};
+
+window.aprovarCompra = async (id) => {
+
+  const prazo = document.getElementById(`prazo_${id}`).value;
+  const local = document.getElementById(`local_${id}`).value;
+
+  await setDoc(
+    doc(db, "compras", id),
+    {
+      status: "aprovado",
+      prazo,
+      localRetirada: local
+    },
+    { merge: true }
+  );
+
+  alert("✅ Compra aprovada!");
+};
+
+window.reprovarCompra = async (id) => {
+
+  await setDoc(
+    doc(db, "compras", id),
+    {
+      status: "reprovado"
+    },
+    { merge: true }
+  );
+
+  alert("❌ Compra reprovada!");
 };
