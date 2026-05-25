@@ -38,12 +38,33 @@ input, select, button {
   box-sizing: border-box;
 }
 
+.link {
+  margin-top: 10px;
+  color: #2563eb;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.login-link {
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+}
+
+.button-group button,
+#btnLogin,
+#btnRegister {
+  width: 100%;
+}
 button {
   background: #2563eb;
   color: #fff;
   border: none;
   cursor: pointer;
   font-weight: bold;
+  padding: 10px;
 }
 
 button:hover {
