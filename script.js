@@ -25,6 +25,13 @@ const agora = new Date();
 
 const mesAno = `${agora.getMonth() + 1}-${agora.getFullYear()}`;
 
+const locaisRetirada = [
+  "Kuhn do Brasil, Passo Fundo, Rs",
+  "Kuhn montana do Brasil, São josé dos Pinhais, PR",
+  "Unidade de Distribuição 1, Palmas, TO",
+  "Unidade de Distribuição 2, Rondonópolis, MT",
+];
+
 const ferramentas = {
 
   "Alicates": [
@@ -212,6 +219,7 @@ if (fotoCaixa) {
     if (menuDropdown) menuDropdown.classList.add("hidden");
   };
   carregarGestores();
+  toggleGestor();
 });
 
 window.showLogin = function () {
@@ -250,17 +258,11 @@ async function register() {
   try {
 
     const nome = document.getElementById("regName").value;
-
     const email = document.getElementById("regEmail").value.trim();
-
     const telefone = document.getElementById("regTelefone").value;
-
     const teams = document.getElementById("regTeams").value;
-
     const senha = document.getElementById("regPassword").value;
-
     const confirmarSenha = document.getElementById("regConfirmPassword").value;
-
     const perfil = document.getElementById("regRole").value;
 
     if (!email.endsWith("@kuhn.com")) {
@@ -275,7 +277,12 @@ async function register() {
 
     const cred = await createUserWithEmailAndPassword(auth, email, senha);
 
-   const gestorUid = document.getElementById("regGestor").value;
+    let gestorUid = null;
+
+    if (perfil === "tecnico") {
+      gestorUid = document.getElementById("regGestor").value;
+    }
+
     await setDoc(doc(db, "users", cred.user.uid), {
       nome,
       email,
@@ -285,14 +292,12 @@ async function register() {
       gestorUid
     });
 
-
     alert("✅ Cadastro realizado!");
-
     window.mostrarLogin();
 
   } catch (err) {
     console.error(err);
-    alert("Erro ao cadastrar.");
+    alert("Erro ao cadastrar: " + err.message);
   }
 }
 
@@ -750,9 +755,24 @@ window.abrirAdmin = () => {
 
   dashboardCarregado = false;
 
-  if (adminView) {
-    adminView.classList.remove("hidden");
-  }
+  const adminView = document.getElementById("adminView");
+  adminView.classList.remove("hidden");
+
+  // 🔥 remove tabela de compras
+  document.querySelectorAll("#adminView table").forEach(t => {
+    if (t.id !== "tabelaTecnicos") t.remove();
+  });
+
+  // 🔥 mostra tabela original
+  document.getElementById("tabelaTecnicos").style.display = "table";
+
+  // 🔥 mostra contador
+  const contador = document.querySelector("#adminView p");
+  if (contador) contador.style.display = "block";
+
+  // 🔥 mostra botão excel
+  const btnExcel = document.getElementById("btnExportarExcel");
+  if (btnExcel) btnExcel.style.display = "inline-block";
 
   carregarDashboardAdmin();
 };
@@ -763,7 +783,7 @@ let ok = 0;
 let problemas = 0;
 let pendentes = 0;
 
-  if (dashboardCarregado) return;
+  dashboardCarregado = false;
   dashboardCarregado = true;
 
   const tbody = document.querySelector("#tabelaTecnicos tbody");
@@ -808,17 +828,14 @@ for (const u of users.docs) {
 
 tr.innerHTML = `
   <td>
-    <button
-      class="btn-tecnico"
-      onclick="abrirDetalhesTecnico(
-        '${userData.nome}',
-        '${userData.email || ""}',
-        '${userData.telefone || ""}',
-        '${userData.teams || ""}'
-      )"
-    >
-      ${userData.nome}
-    </button>
+    <span class="nome-tecnico" onclick="abrirDetalhesTecnico(
+  '${userData.nome}',
+  '${userData.email || ""}',
+  '${userData.telefone || ""}',
+  '${userData.teams || ""}'
+)">
+  ${userData.nome}
+</span>
   </td>
 
   <td class="${classe}">
@@ -1352,20 +1369,21 @@ window.enviarCompra = async () => {
   const userSnap = await getDoc(doc(db, "users", window.usuarioLogadoUID));
   const userData = userSnap.data();
 
-  await setDoc(
-    doc(collection(db, "compras")),
-    {
-      tecnicoUid: window.usuarioLogadoUID,
-      tecnicoNome: userData.nome,
-      gestorUid: userData.gestorUid,
-      ferramenta,
-      motivo,
-      status: "pendente",
-      prazo: null,
-      localRetirada: null,
-      criadoEm: new Date()
-    }
-  );
+await setDoc(
+  doc(collection(db, "compras")),
+  {
+    tecnicoUid: window.usuarioLogadoUID,
+    tecnicoNome: userData.nome,
+    gestorUid: userData.gestorUid,
+    ferramenta,
+    motivo,
+    status: "pendente",
+    tipo: "manual", // ✅ AQUI
+    prazo: null,
+    localRetirada: null,
+    criadoEm: new Date()
+  }
+);
 
   alert("✅ Solicitação enviada!");
 };
@@ -1373,11 +1391,44 @@ window.abrirAprovarCompras = async () => {
 
   esconderTudo();
 
-  const adminView = document.getElementById("adminView");
-  adminView.classList.remove("hidden");
+  const container = document.getElementById("adminView");
+  container.classList.remove("hidden");
 
-  const tbody = document.querySelector("#tabelaTecnicos tbody");
-  tbody.innerHTML = "";
+  // ✅ PEGA contador corretamente
+  const contador = document.querySelector("#adminView p");
+  if (contador) contador.style.display = "none";
+
+  const btnExcel = document.getElementById("btnExportarExcel");
+  if (btnExcel) btnExcel.style.display = "none";
+
+  const tabela = document.getElementById("tabelaTecnicos");
+  if (tabela) tabela.style.display = "none";
+
+  // 🔥 remove tabelas antigas de compras
+  container.querySelectorAll("table").forEach(t => {
+    if (t.id !== "tabelaTecnicos") t.remove();
+  });
+
+  const table = document.createElement("table");
+
+  table.innerHTML = `
+    <thead>
+      <th>Técnico</th>
+      <th>Ferramenta</th>
+      <th>Motivo</th>
+      <th>Status</th>
+      <th>Ações</th>
+    </thead>
+    <tbody id="tbodyCompras"></tbody>
+  `;
+
+  const wrapper = document.createElement("div");
+wrapper.className = "tabela-wrapper";
+
+wrapper.appendChild(table);
+container.appendChild(wrapper);
+
+  const tbody = document.getElementById("tbodyCompras");
 
   const compras = await getDocs(collection(db, "compras"));
 
@@ -1385,7 +1436,6 @@ window.abrirAprovarCompras = async () => {
 
     const data = docSnap.data();
 
-    // ✅ só mostra pro gestor correto
     if (data.gestorUid !== window.usuarioLogadoUID) return;
 
     const tr = document.createElement("tr");
@@ -1394,13 +1444,12 @@ window.abrirAprovarCompras = async () => {
       <td>${data.tecnicoNome}</td>
       <td>${data.ferramenta}</td>
       <td>${data.motivo}</td>
+      <td>${data.status}</td>
       <td>
-        <input placeholder="Prazo" id="prazo_${docSnap.id}" />
-
-        <input placeholder="Local retirada" id="local_${docSnap.id}" />
-
-        <button onclick="aprovarCompra('${docSnap.id}')">✅</button>
-        <button onclick="reprovarCompra('${docSnap.id}')">❌</button>
+        ${data.status === "pendente" ? `
+          <button onclick="abrirSelecaoLocal('${docSnap.id}')">✅</button>
+          <button onclick="reprovarCompra('${docSnap.id}')">❌</button>
+        ` : ""}
       </td>
     `;
 
@@ -1409,6 +1458,11 @@ window.abrirAprovarCompras = async () => {
 };
 
 window.aprovarCompra = async (id) => {
+
+  const snap = await getDoc(doc(db, "compras", id));
+  const data = snap.data();
+
+  if (data.tipo !== "manual") return;
 
   const prazo = document.getElementById(`prazo_${id}`).value;
   const local = document.getElementById(`local_${id}`).value;
@@ -1437,4 +1491,111 @@ window.reprovarCompra = async (id) => {
   );
 
   alert("❌ Compra reprovada!");
+      abrirAprovarCompras();
+};
+
+window.confirmarAprovacao = async (id) => {
+
+  const local = document.getElementById(`local_${id}`).value;
+
+  await setDoc(
+    doc(db, "compras", id),
+    {
+      status: "aprovado",
+      localRetirada: local
+    },
+    { merge: true }
+  );
+
+  alert("✅ Aprovado com local definido");
+
+  abrirAprovarCompras(); // atualiza tela
+};
+
+window.retirar = async (id) => {
+
+  await setDoc(
+    doc(db, "compras", id),
+    {
+      status: "retirado"
+    },
+    { merge: true }
+  );
+
+  alert("📦 Retirada confirmada!");
+
+
+const compras = await getDocs(collection(db, "compras"));
+
+let pendentes = 0;
+let aprovadas = 0;
+let reprovadas = 0;
+
+compras.forEach(doc => {
+  const s = doc.data().status;
+
+  if (s === "pendente") pendentes++;
+  if (s === "aprovado") aprovadas++;
+  if (s === "reprovado") reprovadas++;
+});
+};
+window.confirmarAprovacao = async (id) => {
+
+  const local = document.getElementById(`local_${id}`).value;
+
+  await setDoc(
+    doc(db, "compras", id),
+    {
+      status: "aprovado",
+      localRetirada: local
+    },
+    { merge: true }
+  );
+
+  // ✅ FECHA O MODAL
+  const modal = document.getElementById("modalAprovacao");
+  if (modal) modal.remove();
+
+  alert("✅ Aprovado com local definido");
+
+  abrirAprovarCompras(); // atualiza tabela
+};
+
+window.abrirSelecaoLocal = (id) => {
+
+  const modal = document.createElement("div");
+  modal.id = "modalAprovacao";
+  modal.className = "modal";
+
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h3>Selecionar local de retirada</h3>
+
+      <select id="local_${id}">
+        ${locaisRetirada.map(l => `<option>${l}</option>`).join("")}
+      </select>
+
+      <button onclick="confirmarAprovacao('${id}')">✅ Confirmar</button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+};
+
+window.toggleGestor = () => {
+
+  const perfil = document.getElementById("regRole")?.value;
+  const selectGestor = document.getElementById("regGestor");
+
+  if (!selectGestor) return;
+
+  const label = selectGestor.previousElementSibling;
+
+  if (perfil === "admin") {
+    selectGestor.style.display = "none";
+    if (label) label.style.display = "none";
+  } else {
+    selectGestor.style.display = "block";
+    if (label) label.style.display = "block";
+  }
 };
