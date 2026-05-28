@@ -4,6 +4,8 @@ body {
   font-family: Arial, sans-serif;
   background: #f3f4f6;
   margin: 0;
+  padding: 0;
+
 }
 
 .hidden {
@@ -77,16 +79,18 @@ button:hover {
   background: linear-gradient(90deg, #630404, #860707);
   color: white;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  width: 100%;
 }
 
 /* área interna */
 .header-inner {
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin: auto;
   padding: 8px 25px; /* ✅ menor */
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
 }
 
 /* logo + título */
@@ -546,9 +550,8 @@ tbody tr:nth-child(even) {
 }
 
 @media (min-width: 768px) {
-
-  .modal-content {
-    max-width: 450px;
-    padding: 30px;
+  .header-inner {
+    max-width: 1200px;
+    margin: auto;
   }
 }
