@@ -29,7 +29,7 @@ body {
 /* ===== INPUTS ===== */
 
 input, select, button {
-  width: 100%;
+  width: auto;
   margin-top: 10px;
   padding: 10px;
   font-size: 14px;
@@ -311,11 +311,19 @@ button:hover {
 
 .modal {
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
   display: flex;
   justify-content: center;
   align-items: center;
+
+  background: rgba(0,0,0,0.5);
+
+  z-index: 999;
+  overflow-y: auto;
 }
 
 .modal.hidden {
@@ -325,9 +333,12 @@ button:hover {
 .modal-content {
   background: white;
   padding: 20px;
-  border-radius: 12px;
-  width: 350px;
-  position: relative;
+  border-radius: 8px;
+
+  width: 90%;
+  max-width: 400px;
+
+  box-sizing: border-box;
 }
 
 .modal-close {
@@ -381,4 +392,138 @@ button:hover {
 #homeView {
   border-left: 4px solid #860707;
   padding-left: 16px; /* ✅ dá respiro do texto */
+}
+
+.status-pendente {
+  color: #d97706;
+  font-weight: bold;
+}
+
+.status-aprovado {
+  color: green;
+  font-weight: bold;
+  padding: 3px 6px;
+  border-radius: 6px;
+}
+
+.status-reprovado {
+  color: red;
+  font-weight: bold;
+  padding: 3px 6px;
+  border-radius: 6px;
+}
+
+.status-retirado {
+  color: #2563eb;
+  font-weight: bold;
+   padding: 3px 6px;
+  border-radius: 6px;
+}
+
+td button {
+  width: auto;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+input {
+  margin-top: 5px;
+}
+
+td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.acoes {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-ok {
+  background: #92be7c;
+  color: white;
+}
+
+.btn-no {
+  background: #ca5e5e;
+  color: white;
+}
+
+.btn-retirada {
+  color: white;
+  padding: 6px;
+}
+
+.card-compra button {
+  width: auto;         /* 🔥 remove full width */
+  display: inline-block;
+  margin-right: 6px;
+  padding: 6px 10px;
+}
+
+.nome-tecnico {
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nome-tecnico:hover {
+  text-decoration: underline;
+}
+
+#tabelaTecnicos td {
+  text-align: center;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+thead {
+  background-color: #f3f4f6;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.tabela-wrapper {
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  
+  th, td {
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  h2 {
+    font-size: 18px;
+  }
+
+}
+
+@media (max-width: 768px) {
+
+  .modal-content {
+    width: 95%;
+    max-width: none;
+  }
+
 }
