@@ -24,7 +24,7 @@
 
       <span
         id="loginLink"
-        onclick="abrirLogin()"
+        onclick="window.abrirLogin()"
         class="login-link"
       >
         Login/Cadastrar
@@ -198,7 +198,7 @@
           placeholder="Confirmar senha"
         >
 
-      <select id="regRole">
+      <select id="regRole" onchange="toggleGestor()">
 
   <option value="tecnico">Técnico</option>
   <option value="admin">Administrador</option>
@@ -356,49 +356,29 @@
   </div>
 
   <!-- ADMIN -->
-  <div id="adminView" class="card hidden">
+ <div id="adminView" class="card hidden">
 
-    <h2>Administração</h2>
+  <h2>Administração</h2>
 
-    <p>
-      ✅ OK:
-      <span id="countOk">0</span>
+  <p>
+    ✅ OK: <span id="countOk">0</span> |
+    ⚠️ Problemas: <span id="countProblemas">0</span> |
+    ❌ Pendentes: <span id="countPendente">0</span>
+  </p>
 
-      |
+  <table id="tabelaTecnicos" border="1" width="100%">
+    <thead>
+      <th>Técnico</th>
+      <th>Status</th>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-      ⚠️ Problemas:
-      <span id="countProblemas">0</span>
+  <button id="btnExportarExcel">
+    📊 Exportar Excel
+  </button>
 
-      |
-
-      ❌ Pendentes:
-      <span id="countPendente">0</span>
-
-    </p>
-
-    <table
-      id="tabelaTecnicos"
-      border="1"
-      width="100%"
-    >
-
-      <thead>
-
-        <tr>
-          <th>Técnico</th>
-          <th>Status</th>
-        </tr>
-
-      </thead>
-
-      <tbody></tbody>
-
-    </table>
-
-    <button id="btnExportarExcel">
-      📊 Exportar Excel
-    </button>
-  </div>
+</div>
   <div id="regrasView" class="card hidden">
 
  <h2>Diretrizes do Sistema</h2>
@@ -414,8 +394,8 @@
       adotando as medidas necessárias para proteção das informações.</li>
   </ul>
 </div>
-<div id="comprasView" class="card hidden"></div>
 </div>
+<div id="comprasView" class="card hidden"></div>
 
 
 <!-- MODAL TÉCNICO -->
