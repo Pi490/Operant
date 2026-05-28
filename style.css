@@ -560,8 +560,15 @@ tbody tr:nth-child(even) {
 
 @media (max-width: 768px) {
 
+ .logo-img {
+  height: 40px;
+  width: auto;
+}
+}
+
+@media (max-width: 768px) {
   .logo-img {
-    height: 30px; /* 🔥 menor */
+    height: 28px;
   }
 }
 
