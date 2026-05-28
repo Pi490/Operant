@@ -90,6 +90,8 @@ button:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: nowrap;
+
   padding: 10px 15px;
 }
 
@@ -115,7 +117,7 @@ button:hover {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
 }
 
 /* perfil */
@@ -553,5 +555,26 @@ tbody tr:nth-child(even) {
   .header-inner {
     max-width: 1200px;
     margin: auto;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .logo-img {
+    height: 30px; /* 🔥 menor */
+  }
+}
+
+@media (max-width: 768px) {
+
+  .header-title {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .header-inner {
+    padding: 8px 10px;
   }
 }
