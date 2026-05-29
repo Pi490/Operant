@@ -321,17 +321,12 @@ button:hover {
   left: 0;
   width: 100%;
   height: 100%;
-
   display: flex;
   justify-content: center;
-
   align-items: flex-start; /* 🔥 aqui está o segredo */
-
   padding-top: 60px; /* distância do topo */
-
   background: rgba(0,0,0,0.5);
   z-index: 999;
-
   overflow-y: auto;
 }
 
@@ -346,7 +341,7 @@ button:hover {
 
   width: 90%;
   max-width: 400px;
-
+  position: relative;
   box-sizing: border-box;
 }
 
@@ -367,7 +362,8 @@ button:hover {
 .modal-close {
   position: absolute;
   top: 10px;
-  right: 15px;
+  right: 15px; /* 🔥 IMPORTANTE */
+  left: auto;
   font-size: 20px;
   cursor: pointer;
   color:#ff0000;
@@ -466,21 +462,6 @@ td {
   gap: 6px;
 }
 
-.btn-ok {
-  background: #92be7c;
-  color: white;
-}
-
-.btn-no {
-  background: #ca5e5e;
-  color: white;
-}
-
-.btn-retirada {
-  color: white;
-  padding: 6px;
-}
-
 .card-compra button {
   width: auto;         /* 🔥 remove full width */
   display: inline-block;
@@ -495,6 +476,17 @@ td {
 }
 
 .nome-tecnico:hover {
+  text-decoration: underline;
+}
+
+.nome-tecnico-maleta {
+  color: #2563eb;
+  cursor: pointer;
+  margin-right: 10px;
+  font-weight: 500;
+}
+
+.nome-tecnico-maleta:hover {
   text-decoration: underline;
 }
 
@@ -584,4 +576,90 @@ tbody tr:nth-child(even) {
   .header-inner {
     padding: 8px 10px;
   }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+thead {
+  background-color: #f3f4f6;
+}
+
+#listaTecnicosMaletas tr {
+  cursor: pointer;
+}
+
+#listaTecnicosMaletas tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+#listaTecnicosMaletas tbody tr:hover td {
+  color: #2563eb;
+}
+
+#listaTecnicosMaletas td {
+  transition: color 0.2s ease;
+}
+
+.mes-item {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: #e5e7eb;
+  border-radius: 12px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.mes-item:hover {
+  background-color: #d1d5db;
+}
+
+#btnExportarExcel {
+  background-color: #433a3a;
+  color: white;
+
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+
+  font-size: 13px;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  transition: 
+  background 0.2s ease;
+}
+
+#btnExportarExcel:hover {
+  background-color: #6a1e1e;
+}
+
+.problema {
+  color: orange;
+  font-weight: bold;
+}
+
+.ok {
+  color: green;
+}
+
+.pendente {
+  color: red;
+}
+
+.em_espera {
+  color: gray;
 }
