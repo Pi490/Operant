@@ -418,7 +418,13 @@ function montarMenuPorPerfil(perfil) {
 
     btn.textContent = item.nome;
 
-    btn.onclick = () => window[item.acao]();
+    btn.onclick = () => {
+  if (typeof window[item.acao] === "function") {
+    window[item.acao]();
+  } else {
+    console.warn("Função não existe:", item.acao);
+  }
+};
 
     menuDropdown.appendChild(btn);
   });
@@ -776,15 +782,11 @@ window.abrirAdmin = () => {
 
   carregarDashboardAdmin();
 };
-
 async function carregarDashboardAdmin() {
 
-let ok = 0;
-let problemas = 0;
-let pendentes = 0;
-
-  dashboardCarregado = false;
-  dashboardCarregado = true;
+  let ok = 0;
+  let problemas = 0;
+  let pendentes = 0;
 
   const tbody = document.querySelector("#tabelaTecnicos tbody");
   if (!tbody) return;
@@ -793,62 +795,112 @@ let pendentes = 0;
 
   const users = await getDocs(collection(db, "users"));
 
-for (const u of users.docs) {
+  for (const u of users.docs) {
 
-  const userData = u.data();
-  if (userData.perfil !== "tecnico") continue;
+    const userData = u.data();
+    if (userData.perfil !== "tecnico") continue;
 
-  let status = "Pendente";
-  let classe = "pendente";
+    let status = "Pendente";
+    let classe = "pendente";
 
-  const chk = await getDoc(
-    doc(db, "checklists", `${u.id}_${mesAno}`)
-  );
-
-  if (chk.exists()) {
-
-    const checklist = chk.data().checklist || [];
-
-    const temProblema = checklist.some(r =>
-      !r.estaComTecnico ||
-      !r.boasCondicoes ||
-      r.precisaReposicao
+    const chk = await getDoc(
+      doc(db, "checklists", `${u.id}_${mesAno}`)
     );
 
-    status = temProblema ? "Problemas" : "OK";
-    classe = temProblema ? "problema" : "ok";
-  }
+    if (chk.exists()) {
 
-  // ✅ CONTAGEM AQUI
-  if (status === "OK") ok++;
-  else if (status === "Problemas") problemas++;
-  else pendentes++;
+      const checklist = chk.data().checklist || [];
 
-  const tr = document.createElement("tr");
+      const temProblema = checklist.some(r =>
+        !r.estaComTecnico ||
+        !r.boasCondicoes ||
+        r.precisaReposicao
+      );
 
-tr.innerHTML = `
-  <td>
-    <span class="nome-tecnico" onclick="abrirDetalhesTecnico(
-  '${userData.nome}',
-  '${userData.email || ""}',
-  '${userData.telefone || ""}',
-  '${userData.teams || ""}'
-)">
-  ${userData.nome}
-</span>
+      status = temProblema ? "Problemas" : "OK";
+      classe = temProblema ? "problema" : "ok";
+    }
+
+    if (status === "OK") ok++;
+    else if (status === "Problemas") problemas++;
+    else pendentes++;
+
+    const tr = document.createElement("tr");
+
+   tr.innerHTML = `
+  <td 
+    style="cursor:pointer; color:blue; text-decoration:underline"
+    onclick="abrirDetalhesTecnico(
+      '${userData.nome}',
+      '${userData.email}',
+      '${userData.telefone || ""}',
+      '${userData.teams || ""}'
+    )"
+  >
+    ${userData.nome}
   </td>
 
-  <td class="${classe}">
-    ${status}
-  </td>
+  <td class="${classe}">${status}</td>
 `;
-  tbody.appendChild(tr);
-}
+
+    tbody.appendChild(tr);
+  }
 
   document.getElementById("countOk").textContent = ok;
   document.getElementById("countProblemas").textContent = problemas;
   document.getElementById("countPendente").textContent = pendentes;
+}
 
+async function carregarTecnicosMaletas() {
+
+  const container = document.getElementById("listaTecnicosMaletas");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const table = document.createElement("table");
+
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Técnico</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+
+  container.appendChild(table);
+
+  const tbody = table.querySelector("tbody");
+
+  const users = await getDocs(collection(db, "users"));
+
+  users.forEach(u => {
+
+    const data = u.data();
+    if (data.perfil !== "tecnico") return;
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `<td>${data.nome}</td>`;
+
+    tr.onclick = () => {
+
+      if (window.usuarioSelecionadoUID === u.id) {
+
+        document.getElementById("listaMesesMaletas").innerHTML = "";
+        document.getElementById("fotosMaleta").innerHTML = "";
+
+        window.usuarioSelecionadoUID = null;
+        return;
+      }
+
+      window.usuarioSelecionadoUID = u.id;
+      carregarMesesMaletas(u.id, data.nome);
+    };
+
+    tbody.appendChild(tr);
+  });
 }
 
 window.exportarExcelProblemasPorTecnico = async function () {
@@ -1063,34 +1115,6 @@ window.abrirMaletas = async () => {
   carregarTecnicosMaletas();
 };
 
-async function carregarTecnicosMaletas() {
-
-  const container = document.getElementById("listaTecnicosMaletas");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  const users = await getDocs(collection(db, "users"));
-
-  users.forEach(u => {
-
-    const data = u.data();
-
-    if (data.perfil !== "tecnico") return;
-
-    const btn = document.createElement("button");
-
-    btn.textContent = data.nome;
-
-    btn.onclick = () => {
-      carregarMesesMaletas(u.id, data.nome);
-    };
-
-    container.appendChild(btn);
-  });
-}
-
 async function carregarMesesMaletas(uid, nome) {
 
   window.usuarioSelecionadoUID = uid;
@@ -1108,19 +1132,14 @@ async function carregarMesesMaletas(uid, nome) {
   checklists.forEach(docSnap => {
 
     if (!docSnap.id.startsWith(uid)) return;
-
     const dados = docSnap.data();
-
     const mesAno = dados.mesAno;
-
     if (!mesAno) return;
-
     if (mesesJaAdicionados.has(mesAno)) return;
-
     mesesJaAdicionados.add(mesAno);
 
-    const btn = document.createElement("button");
-
+    const btn = document.createElement("span");
+    btn.className = "mes-item";
     btn.textContent = mesAno;
 
     btn.onclick = async () => {
@@ -1447,9 +1466,11 @@ container.appendChild(wrapper);
       <td>${data.status}</td>
       <td>
         ${data.status === "pendente" ? `
-          <button onclick="abrirSelecaoLocal('${docSnap.id}')">✅</button>
+          <button onclick="abrirAprovacaoComPrazo('${docSnap.id}')">✅</button>
+          <button onclick="colocarEmEspera('${docSnap.id}')">⏳</button>
           <button onclick="reprovarCompra('${docSnap.id}')">❌</button>
         ` : ""}
+
       </td>
     `;
 
@@ -1598,4 +1619,174 @@ window.toggleGestor = () => {
     selectGestor.style.display = "block";
     if (label) label.style.display = "block";
   }
+};
+
+window.colocarEmEspera = async (id) => {
+
+  await setDoc(
+    doc(db, "compras", id),
+    {
+      status: "em_espera"
+    },
+    { merge: true }
+  );
+
+  alert("⏳ Compra em espera");
+  abrirAprovarCompras();
+};
+window.abrirAprovacaoComPrazo = (id) => {
+
+  const modal = document.createElement("div");
+  modal.id = "modalAprovacao";
+  modal.className = "modal";
+
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h3>Aprovar compra</h3>
+
+      <label>Prazo:</label>
+      <input type="date" id="prazo_${id}" />
+
+      <label>Local de retirada:</label>
+      <select id="local_${id}">
+        ${locaisRetirada.map(l => `<option>${l}</option>`).join("")}
+      </select>
+
+      <button onclick="confirmarAprovacaoComPrazo('${id}')">✅ Confirmar</button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+};
+window.confirmarAprovacaoComPrazo = async (id) => {
+
+  const prazo = document.getElementById(`prazo_${id}`).value;
+  const local = document.getElementById(`local_${id}`).value;
+
+  if (!prazo) {
+    alert("Defina um prazo!");
+    return;
+  }
+
+  await setDoc(
+    doc(db, "compras", id),
+    {
+      status: "aprovado",
+      prazo,
+      localRetirada: local
+    },
+    { merge: true }
+  );
+
+  document.getElementById("modalAprovacao")?.remove();
+
+  alert("✅ Compra aprovada com prazo");
+
+  abrirAprovarCompras();
+};
+
+window.abrirEstatisticas = async () => {
+
+  esconderTudo();
+
+  const view = document.getElementById("estatisticasView");
+  view.classList.remove("hidden");
+
+  await carregarEstatisticas();
+};
+async function carregarEstatisticas() {
+ console.log("estatisticas carregando...");
+  const users = await getDocs(collection(db, "users"));
+  const checklists = await getDocs(collection(db, "checklists"));
+  const compras = await getDocs(collection(db, "compras"));
+
+  // 🔹 1. GRÁFICO POR TÉCNICO
+  const dadosTecnicos = {};
+
+  users.forEach(u => {
+    const data = u.data();
+    if (data.perfil === "tecnico") {
+      dadosTecnicos[data.nome] = 0;
+    }
+  });
+
+  checklists.forEach(c => {
+    const data = c.data();
+    if (dadosTecnicos[data.uid]) {
+      dadosTecnicos[data.uid]++;
+    }
+  });
+
+  gerarGraficoBarra("graficoTecnicos", Object.keys(dadosTecnicos), Object.values(dadosTecnicos), "Checklists por Técnico");
+
+  // 🔹 2. FERRAMENTAS COM PROBLEMA
+  const problemasFerramentas = {};
+
+  checklists.forEach(c => {
+    const lista = c.data().checklist || [];
+
+    lista.forEach(item => {
+
+      if (!item.boasCondicoes || item.precisaReposicao) {
+        problemasFerramentas[item.ferramenta] = (problemasFerramentas[item.ferramenta] || 0) + 1;
+      }
+
+    });
+  });
+
+  gerarGraficoBarra("graficoFerramentasProblema",
+    Object.keys(problemasFerramentas),
+    Object.values(problemasFerramentas),
+    "Ferramentas com mais problemas");
+
+  // 🔹 3. COMPRAS MAIS PEDIDAS
+  const comprasFerramentas = {};
+
+  compras.forEach(c => {
+    const data = c.data();
+    comprasFerramentas[data.ferramenta] = (comprasFerramentas[data.ferramenta] || 0) + 1;
+  });
+
+  gerarGraficoBarra("graficoCompras",
+    Object.keys(comprasFerramentas),
+    Object.values(comprasFerramentas),
+    "Ferramentas mais solicitadas");
+
+  // 🔹 4. TEMPO DE CHECKLIST (simples)
+  const atraso = [];
+
+  checklists.forEach(c => {
+    const data = c.data();
+
+    const criado = new Date(data.criadoEm.toDate?.() || data.criadoEm);
+
+    atraso.push(criado.getDate());
+  });
+
+  gerarGraficoBarra("graficoChecklistTempo",
+    atraso.map((_, i) => "Checklist " + i),
+    atraso,
+    "Dia do envio do checklist");
+}
+function gerarGraficoBarra(id, labels, dados, titulo) {
+
+  const ctx = document.getElementById(id).getContext("2d");
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: titulo,
+        data: dados
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
+}
+
+window.abrirDocumentacao = () => {
+  alert("Área de documentação em construção");
 };
