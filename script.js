@@ -1712,8 +1712,11 @@ async function carregarEstatisticas() {
 
   checklists.forEach(c => {
     const data = c.data();
-    if (dadosTecnicos[data.uid]) {
-      dadosTecnicos[data.uid]++;
+   const userSnap = users.docs.find(u => u.id === data.uid);
+    const nome = userSnap?.data()?.nome;
+
+    if (nome && dadosTecnicos[nome] !== undefined) {
+      dadosTecnicos[nome]++;
     }
   });
 
