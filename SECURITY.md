@@ -102,6 +102,3 @@ A **KUHN do Brasil** reafirma seu compromisso com:
 - A conformidade com normas internacionais (ISO 27001) e legislações vigentes (LGPD);
 - A integridade e confiabilidade do sistema **Operant**;
 - A evolução contínua das práticas de segurança da informação.
-
----
-``
