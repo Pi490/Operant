@@ -11,11 +11,13 @@ O sistema está organizado em duas categorias principais:
 Funcionalidades
 
 
-Análise por Técnico
+. Análise por Técnico:
+
 Permite visualizar o panorama individual dos checklists realizados, facilitando o acompanhamento de desempenho e conformidade.
 
 
-Estatísticas
+. Estatísticas:
+
 Apresenta dados em formato gráfico, possibilitando a análise de:
 
 Ferramentas com maior índice de falhas;
@@ -24,19 +26,20 @@ Itens com maior demanda de compra.
 
 
 
-Maletas
+. Maletas:
+
 Acesso às imagens das maletas e veículos dos técnicos, para verificação de organização e conformidade.
 
 
-Aprovação de Compras
+. Aprovação de Compras:
 Responsável pela análise e aprovação das solicitações de aquisição de ferramentas.
 
 
-Documentação
+. Documentação:
 Armazenamento e gestão dos documentos dos técnicos.
 
 
-Regras
+. Regras:
 Diretrizes e responsabilidades administrativas dentro do sistema.
 
 
@@ -54,19 +57,19 @@ Garantir a integridade, segurança e confidencialidade das informações do sist
 Funcionalidades
 
 
-Checklist
+. Checklist:
 Registro e verificação das condições das ferramentas.
 
 
-Compras
+. Compras:
 Solicitação de aquisição de ferramentas, incluindo demandas urgentes.
 
 
-Documentação
+. Documentação:
 Acesso aos documentos pessoais e profissionais.
 
 
-Regras
+. Regras:
 Normas e diretrizes obrigatórias para atuação no sistema.
 
 
