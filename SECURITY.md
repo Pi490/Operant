@@ -1,21 +1,59 @@
-# Security Policy
+# Política de Segurança
 
-## Supported Versions
+##  Versões Suportadas
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+A tabela abaixo indica quais versões do sistema **Operant** recebem atualizações de segurança.
 
-| Version | Supported          |
+| Versão | Suporte            |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| 1.x     | ✅ Suportado       |
+| < 1.0   | ❌ Não suportado   |
 
-## Reporting a Vulnerability
+---
 
-Use this section to tell people how to report a vulnerability.
+##  Reporte de Vulnerabilidades
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Se você identificar alguma vulnerabilidade de segurança no sistema, siga as orientações abaixo:
+
+- **Não publique a vulnerabilidade publicamente**
+- Envie um relato detalhado para o responsável pelo sistema ou equipe de TI
+
+### Contato
+
+Envie um e-mail para:  
+piettra.celli@kuhn.com
+
+### Informações importantes no relatório
+
+Inclua:
+
+- Descrição da vulnerabilidade
+- Passos para reprodução
+- Impacto esperado
+- Possível solução (se houver)
+
+---
+
+##  Tempo de Resposta
+
+Após o envio do reporte:
+
+- Confirmação de recebimento: até **2 dias úteis**
+- Análise inicial: até **5 dias úteis**
+- Correção (quando aplicável): definida conforme a gravidade
+
+---
+
+## Tratamento
+
+Cada caso será avaliado e poderá resultar em:
+
+- Correção imediata
+- Planejamento para correção futura
+- Classificação como risco aceitável
+
+---
+
+##  Confidencialidade
+
+Todas as informações relacionadas à vulnerabilidade serão tratadas com confidencialidade até que uma correção seja aplicada.
