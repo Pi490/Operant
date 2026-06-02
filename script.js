@@ -101,6 +101,14 @@ const ferramentas = {
     "Torno de bancada"
   ]
 };
+const coresGrupos = {
+  "Alicates": "#007bff",   // azul
+  "Chaves": "#28a745",     // verde
+  "Medição": "#ffc107",    // amarelo
+  "Eletrônico": "#dc3545", // vermelho
+  "Outros": "#fd7e14"      // laranja
+};
+
 
 const ferramentasFlat = Object.values(ferramentas).flat();
 
@@ -138,6 +146,9 @@ function esconderTudo() {
 
   const compras = document.getElementById("comprasView");
   if (compras) compras.classList.add("hidden");
+
+  const estatisticas = document.getElementById("estatisticasView");
+  if (estatisticas) estatisticas.classList.add("hidden");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -504,16 +515,19 @@ function gerarChecklist() {
               <input type="text" id="mot_${i}" placeholder="Motivo">
             </div>
 
-            <div class="pergunta-grupo fotos-grupo hidden" id="fotos_${i}">
-              <p>📸 Adicione fotos</p>
+           <div class="pergunta-grupo fotos-grupo hidden" id="fotos_${i}">
+            <p>📸 Adicione fotos</p>
 
+            <div class="upload-box">
               <input type="file" id="foto_${i}_1" accept="image/*">
               <img id="preview_${i}_1" class="preview-foto hidden">
+            </div>
 
+            <div class="upload-box">
               <input type="file" id="foto_${i}_2" accept="image/*">
               <img id="preview_${i}_2" class="preview-foto hidden">
             </div>
-
+          </div>
           </div>
         </details>
       `;
@@ -1686,110 +1700,311 @@ window.confirmarAprovacaoComPrazo = async (id) => {
 };
 
 window.abrirEstatisticas = async () => {
-
   esconderTudo();
-
   const view = document.getElementById("estatisticasView");
   view.classList.remove("hidden");
 
+  const tipoAtual = document.querySelector("#estatisticasView select:nth-of-type(1)")?.value || "tecnicos";
+
+  window.trocarGrafico(tipoAtual);
   await carregarEstatisticas();
 };
 async function carregarEstatisticas() {
- console.log("estatisticas carregando...");
-  const users = await getDocs(collection(db, "users"));
-  const checklists = await getDocs(collection(db, "checklists"));
-  const compras = await getDocs(collection(db, "compras"));
 
-  // 🔹 1. GRÁFICO POR TÉCNICO
-  const dadosTecnicos = {};
+  const tipoAtual = document.querySelector("#estatisticasView select:nth-of-type(1)").value;
+  const mesFiltro = window.filtros[tipoAtual];
 
-  users.forEach(u => {
-    const data = u.data();
-    if (data.perfil === "tecnico") {
-      dadosTecnicos[data.nome] = 0;
-    }
-  });
+  const usersSnap = await getDocs(collection(db, "users"));
+  const checklistsSnap = await getDocs(collection(db, "checklists"));
+  const comprasSnap = await getDocs(collection(db, "compras"));
 
-  checklists.forEach(c => {
-    const data = c.data();
-   const userSnap = users.docs.find(u => u.id === data.uid);
-    const nome = userSnap?.data()?.nome;
+  // ✅ limpa gráficos antigos
+  Object.values(window.graficos || {}).forEach(g => g.destroy());
+  window.graficos = {};
 
-    if (nome && dadosTecnicos[nome] !== undefined) {
-      dadosTecnicos[nome]++;
-    }
-  });
+  // =========================
+  // 🔵 TECNICOS
+  // =========================
+  if (tipoAtual === "tecnicos") {
 
-  gerarGraficoBarra("graficoTecnicos", Object.keys(dadosTecnicos), Object.values(dadosTecnicos), "Checklists por Técnico");
+    let ok = 0, problemas = 0, pendentes = 0;
+    const mapa = {};
 
-  // 🔹 2. FERRAMENTAS COM PROBLEMA
-  const problemasFerramentas = {};
+    checklistsSnap.forEach(doc => {
+      const d = doc.data();
+      if (mesFiltro && d.mesAno !== mesFiltro) return;
+      mapa[d.uid] = d;
+    });
 
-  checklists.forEach(c => {
-    const lista = c.data().checklist || [];
+    usersSnap.forEach(u => {
+      const d = u.data();
+      if (d.perfil !== "tecnico") return;
 
-    lista.forEach(item => {
+      const chk = mapa[u.id];
 
-      if (!item.boasCondicoes || item.precisaReposicao) {
-        problemasFerramentas[item.ferramenta] = (problemasFerramentas[item.ferramenta] || 0) + 1;
+      if (!chk) {
+        pendentes++;
+        return;
       }
 
+      const temProblema = (chk.checklist || []).some(i =>
+        !i.boasCondicoes || i.precisaReposicao || !i.estaComTecnico
+      );
+
+      temProblema ? problemas++ : ok++;
     });
-  });
 
-  gerarGraficoBarra("graficoFerramentasProblema",
-    Object.keys(problemasFerramentas),
-    Object.values(problemasFerramentas),
-    "Ferramentas com mais problemas");
+    gerarGrafico("graficoTecnicos",
+      ["OK", "Problemas", "Pendentes"],
+      [ok, problemas, pendentes]
+    );
+  }
 
-  // 🔹 3. COMPRAS MAIS PEDIDAS
-  const comprasFerramentas = {};
+  // =========================
+  // 🟠 COMPRAS
+  // =========================
+  if (tipoAtual === "compras") {
 
-  compras.forEach(c => {
-    const data = c.data();
-    comprasFerramentas[data.ferramenta] = (comprasFerramentas[data.ferramenta] || 0) + 1;
-  });
+  let pend = 0;
+let aprov = 0;
+let reprov = 0;
+let encontrouDados = false;
 
-  gerarGraficoBarra("graficoCompras",
-    Object.keys(comprasFerramentas),
-    Object.values(comprasFerramentas),
-    "Ferramentas mais solicitadas");
+comprasSnap.forEach(doc => {
 
-  // 🔹 4. TEMPO DE CHECKLIST (simples)
-  const atraso = [];
+  const d = doc.data();
 
-  checklists.forEach(c => {
-    const data = c.data();
+  if (d.gestorUid !== window.usuarioLogadoUID) return;
 
-    const criado = new Date(data.criadoEm.toDate?.() || data.criadoEm);
+  // ✅ filtro correto por mês
+  if (mesFiltro && d.mesAno !== mesFiltro) return;
 
-    atraso.push(criado.getDate());
-  });
+  encontrouDados = true;
 
-  gerarGraficoBarra("graficoChecklistTempo",
-    atraso.map((_, i) => "Checklist " + i),
-    atraso,
-    "Dia do envio do checklist");
+  if (d.status === "pendente") pend++;
+  if (d.status === "aprovado") aprov++;
+  if (d.status === "reprovado") reprov++;
+});
+
+// ✅ CASO 1: filtro específico (Maio, Junho...)
+if (mesFiltro && !encontrouDados) {
+  alert("⚠️ Sem dados desse mês");
+  return;
 }
-function gerarGraficoBarra(id, labels, dados, titulo) {
 
-  const ctx = document.getElementById(id).getContext("2d");
+// ✅ CASO 2: "Todos" mas realmente vazio
+if (!mesFiltro && pend === 0 && aprov === 0 && reprov === 0) {
+  alert("⚠️ Não há dados cadastrados");
+  return;
+}
 
-  new Chart(ctx, {
-    type: "bar",
+// ✅ se passou pelas validações → gera gráfico
+gerarGrafico(
+  "graficoCompras",
+  ["Pendentes", "Aprovadas", "Reprovadas"],
+  [pend, aprov, reprov],
+  ["#430fa2", "#03b32c", "#d5061a"]
+);
+  }
+
+  // =========================
+  // 🟡 PROBLEMAS
+  // =========================
+  if (tipoAtual === "problemas") {
+
+    const contagem = {};
+
+    checklistsSnap.forEach(doc => {
+
+      const d = doc.data();
+      if (mesFiltro && d.mesAno !== mesFiltro) return;
+
+      (d.checklist || []).forEach(i => {
+
+        const problema =
+          !i.boasCondicoes || i.precisaReposicao || !i.estaComTecnico;
+
+        if (!problema) return;
+
+        contagem[i.ferramenta] = (contagem[i.ferramenta] || 0) + 1;
+      });
+    });
+
+    const lista = Object.entries(contagem)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    if (lista.length === 0) {
+      alert("⚠️ Sem dados desse mês");
+      return;
+    }
+
+const labels = lista.map(i => i[0]);
+const dados = lista.map(i => i[1]);
+
+const cores = labels.map(f => {
+  const grupo = pegarGrupoFerramenta(f);
+  return coresGrupos[grupo] || "#999";
+});
+
+gerarGrafico(
+  "graficoFerramentasProblema",
+  labels,
+  dados,
+  cores // ✅ agora manda cor correta
+);
+  }
+
+  // =========================
+  // 🟣 RANKING
+  // =========================
+  if (tipoAtual === "ranking") {
+
+    const ranking = [];
+
+    usersSnap.forEach(user => {
+
+      const data = user.data();
+      if (data.perfil !== "tecnico") return;
+
+      let pontos = 0;
+
+      checklistsSnap.forEach(chk => {
+
+        const d = chk.data();
+
+        if (d.uid !== user.id) return;
+        if (mesFiltro && d.mesAno !== mesFiltro) return;
+
+        pontos++;
+      });
+
+      ranking.push({ nome: data.nome, pontos });
+    });
+
+    ranking.sort((a, b) => b.pontos - a.pontos);
+
+    document.getElementById("rankingContainer").innerHTML =
+      ranking.slice(0, 5).map((r, i) =>
+        `<div>
+          <strong>${i + 1}º</strong> ${r.nome}
+          <span style="float:right">${r.pontos}</span>
+        </div>`
+      ).join("");
+  }
+}
+
+
+function gerarGrafico(id, labels, dados, coresCustom = null) {
+
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+
+  if (!window.graficos) window.graficos = {};
+
+  // ✅ DESTROI corretamente
+  if (window.graficos[id]) {
+    window.graficos[id].destroy();
+    delete window.graficos[id];
+  }
+
+  const ctx = canvas.getContext("2d");
+
+  const coresMap = {
+    OK: "#15c23e",
+    Problemas: "#ffd814",
+    Pendentes: "#430fa2",
+    Aprovadas: "#03b32c",
+    Reprovadas: "#d5061a"
+  };
+
+  window.graficos[id] = new Chart(ctx, {
+    type: "pie",
     data: {
-      labels: labels,
+      labels,
       datasets: [{
-        label: titulo,
-        data: dados
+        data: dados,
+        backgroundColor: coresCustom || labels.map(l => coresMap[l] || "#999"),
+        borderColor: "#fff",
+        borderWidth: 2
       }]
     },
     options: {
-      responsive: true
-    }
+  responsive: true,
+  maintainAspectRatio: false,
+  layout: {
+    padding: 10
+  }
+}   
   });
+  setTimeout(() => {
+  window.graficos[id]?.resize();
+}, 50);
+
 }
+
+
+window.trocarGrafico = function (tipo) {
+
+  const graficos = {
+    tecnicos: "graficoTecnicos",
+    problemas: "graficoFerramentasProblema",
+    compras: "graficoCompras",
+    ranking: "rankingContainer"
+  };
+
+  // ✅ esconde tudo
+  document.querySelectorAll("#estatisticasView canvas")
+    .forEach(c => c.style.display = "none");
+
+  document.getElementById("rankingContainer").style.display = "none";
+
+  // ✅ mostra apenas o correto
+  const id = graficos[tipo];
+
+  if (id) {
+    document.getElementById(id).style.display = "block";
+  }
+
+  // ✅ atualiza dados ao trocar
+  carregarEstatisticas();
+};
+
+window.baixarGrafico = () => {
+  const canvas = document.querySelector("#estatisticasView canvas:not([style*='none'])");
+  if (!canvas) return alert("Nenhum gráfico visível");
+  const link = document.createElement("a");
+  link.download = "grafico.png";
+  link.href = canvas.toDataURL();
+  link.click();
+};
+
+window.filtros = {
+  tecnicos: null,
+  problemas: null,
+  compras: null
+};
+
+window.filtrarMes = () => {
+  const mesSelecionado = document.getElementById("filtroMes").value;
+  const tipoAtual = document.querySelector("#estatisticasView select:nth-of-type(1)").value;
+
+  window.filtros[tipoAtual] = mesSelecionado;
+
+  carregarEstatisticas();
+};
 
 window.abrirDocumentacao = () => {
   alert("Área de documentação em construção");
 };
+
+function pegarGrupoFerramenta(nomeFerramenta) {
+
+  for (const grupo in ferramentas) {
+    if (ferramentas[grupo].includes(nomeFerramenta)) {
+      return grupo;
+    }
+  }
+
+  return "Outros";
+}
