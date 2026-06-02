@@ -283,17 +283,28 @@ button:hover {
 /* FOTOS */
 
 .fotos-grupo {
-  background: white;
-  border: 1px dashed #ccc;
-  border-radius: 6px;
-  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .preview-foto {
-  max-width: 160px;
-  margin-top: 6px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #ddd;
+  transition: transform 0.2s;
+}
+
+.preview-foto:hover {
+  transform: scale(1.05);
+}
+.upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* STATUS */
@@ -662,4 +673,43 @@ thead {
 
 .em_espera {
   color: gray;
+}
+
+#estatisticasView {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 🔥 container centralizado MESMO */
+.canvas-container {
+  width: 100%;
+  max-width: 400px;
+  height: 350px;
+  position: relative;
+  margin: 20px auto;
+  overflow: hidden;
+}
+
+/* 🔥 canvas absolutamente centralizado */
+.canvas-container canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+}
+
+/* 🔥 ativo aparece */
+canvas.active {
+  display: block;
+}
+
+select {
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+#estatisticasView select {
+  margin: 5px;
 }
