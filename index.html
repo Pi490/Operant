@@ -241,7 +241,7 @@
    <h2>Diretrizes para Técnicos de Campo</h2>
       <ul>
         <li>
-          O checklist mensal deverá ser preenchido até o dia 5 de cada mês, conforme o prazo estabelecido.
+          O checklist trimestral deverá ser preenchido até o dia 5, conforme o prazo estabelecido.
         </li>
         <li>
           É obrigatório o envio de registro fotográfico da caixa de ferramentas devidamente organizada, com anexo no checklist para fins de validação.
@@ -361,7 +361,7 @@
   <h2>Administração</h2>
 
   <p>
-    ✅ OK: <span id="countOk">0</span> |
+    ✅ Regularizado: <span id="countOk">0</span> |
     ⚠️ Problemas: <span id="countProblemas">0</span> |
     ❌ Pendentes: <span id="countPendente">0</span>
   </p>
@@ -375,7 +375,7 @@
   </table>
 
   <button id="btnExportarExcel">
-    📊 Exportar Excel
+    Exportar Excel
   </button>
 
 </div>
@@ -444,15 +444,39 @@
       <span class="modal-close" onclick="fecharModalTecnico()">✖</span>
     </div>
   </div>
+</div>
   <div id="estatisticasView" class="card hidden">
 
   <h2>Estatísticas</h2>
-
+    <select onchange="trocarGrafico(this.value)">
+  <option value="tecnicos">Técnicos</option>
+  <option value="problemas">Problemas</option>
+  <option value="compras">Compras</option>
+  <option value="ranking">Ranking</option> <!-- ✅ novo -->
+</select>
+<select id="filtroMes" onchange="filtrarMes()">
+  <option value="">Todos</option>
+  <option value="6-2026">Junho 2026</option>
+  <option value="5-2026">Maio 2026</option>
+</select>
+  <div class="canvas-container">
   <canvas id="graficoTecnicos"></canvas>
-  <canvas id="graficoFerramentasProblema"></canvas>
   <canvas id="graficoCompras"></canvas>
-  <canvas id="graficoChecklistTempo"></canvas>
+   <div id="rankingContainer" style="display:none;"></div>
+  <canvas id="graficoFerramentasProblema"></canvas>
+  </div>
+  <div class="cards" id="cardsResumo">
+  <div class="card-metrica">
+    ✅ Regularizados <span id="cardOk">0</span>
+  </div>
+  <div class="card-metrica">
+    ⚠️ Problemas <span id="cardProblemas">0</span>
+  </div>
+  <div class="card-metrica">
+    ❌ Pendentes <span id="cardPendentes">0</span>
+  </div>
 </div>
+    <button onclick="baixarGrafico()">Baixar gráfico</button>
 </div>
 </div>
 
