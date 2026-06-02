@@ -102,11 +102,11 @@ const ferramentas = {
   ]
 };
 const coresGrupos = {
-  "Alicates": "#007bff",   // azul
-  "Chaves": "#28a745",     // verde
-  "Medição": "#ffc107",    // amarelo
-  "Eletrônico": "#dc3545", // vermelho
-  "Outros": "#fd7e14"      // laranja
+  "Alicates": "#38ced6",   // azul
+  "Chaves": "#159f35",     // verde
+  "Medição": "#d7c415",    // amarelo
+  "Eletrônico": "#ae1322", // vermelho
+  "Outros": "#6112cf"      // laranja
 };
 
 
@@ -1725,86 +1725,197 @@ async function carregarEstatisticas() {
   // =========================
   // 🔵 TECNICOS
   // =========================
-  if (tipoAtual === "tecnicos") {
+ if (tipoAtual === "tecnicos") {
 
-    let ok = 0, problemas = 0, pendentes = 0;
-    const mapa = {};
+  let ok = 0;
+  let problemas = 0;
+  let pendentes = 0;
+
+  const tecnicos = [];
+
+  usersSnap.forEach(user => {
+    const data = user.data();
+
+    if (data.perfil === "tecnico") {
+      tecnicos.push(user.id);
+    }
+  });
+
+  // ==========================
+  // FILTRO DE UM MÊS
+  // ==========================
+  if (mesFiltro && mesFiltro !== "todos") {
+
+    const enviaram = new Set();
+
+    checklistsSnap.forEach(doc => {
+
+      const d = doc.data();
+
+      if (d.mesAno !== mesFiltro) return;
+
+      enviaram.add(d.uid);
+
+      const lista = d.checklist || [];
+
+      const temProblema = lista.some(item =>
+        !item.boasCondicoes ||
+        item.precisaReposicao ||
+        !item.estaComTecnico
+      );
+
+      if (temProblema) {
+        problemas++;
+      } else {
+        ok++;
+      }
+    });
+
+    tecnicos.forEach(uid => {
+      if (!enviaram.has(uid)) {
+        pendentes++;
+      }
+    });
+
+  }
+
+  // ==========================
+  // TODOS OS MESES
+  // ==========================
+  else {
+
+    const meses = new Set();
 
     checklistsSnap.forEach(doc => {
       const d = doc.data();
-      if (mesFiltro && d.mesAno !== mesFiltro) return;
-      mapa[d.uid] = d;
-    });
 
-    usersSnap.forEach(u => {
-      const d = u.data();
-      if (d.perfil !== "tecnico") return;
-
-      const chk = mapa[u.id];
-
-      if (!chk) {
-        pendentes++;
-        return;
+      if (d.mesAno) {
+        meses.add(d.mesAno);
       }
-
-      const temProblema = (chk.checklist || []).some(i =>
-        !i.boasCondicoes || i.precisaReposicao || !i.estaComTecnico
-      );
-
-      temProblema ? problemas++ : ok++;
     });
 
-    gerarGrafico("graficoTecnicos",
-      ["OK", "Problemas", "Pendentes"],
-      [ok, problemas, pendentes]
-    );
+    meses.forEach(mes => {
+
+      const enviaram = new Set();
+
+      checklistsSnap.forEach(doc => {
+
+        const d = doc.data();
+
+        if (d.mesAno !== mes) return;
+
+        enviaram.add(d.uid);
+
+        const lista = d.checklist || [];
+
+        const temProblema = lista.some(item =>
+          !item.boasCondicoes ||
+          item.precisaReposicao ||
+          !item.estaComTecnico
+        );
+
+        if (temProblema) {
+          problemas++;
+        } else {
+          ok++;
+        }
+      });
+
+      tecnicos.forEach(uid => {
+        if (!enviaram.has(uid)) {
+          pendentes++;
+        }
+      });
+    });
   }
+
+  gerarGrafico(
+    "graficoTecnicos",
+    ["OK", "Problemas", "Pendentes"],
+    [ok, problemas, pendentes]
+  );
+}
 
   // =========================
   // 🟠 COMPRAS
   // =========================
   if (tipoAtual === "compras") {
 
-  let pend = 0;
-let aprov = 0;
-let reprov = 0;
-let encontrouDados = false;
+    let pend = 0;
+    let aprov = 0;
+    let reprov = 0;
+    let encontrouDados = false;
 
-comprasSnap.forEach(doc => {
+    comprasSnap.forEach(doc => {
 
-  const d = doc.data();
+      const d = doc.data();
 
-  if (d.gestorUid !== window.usuarioLogadoUID) return;
+      // apenas compras do gestor
+      if (d.gestorUid !== window.usuarioLogadoUID) return;
 
-  // ✅ filtro correto por mês
-  if (mesFiltro && d.mesAno !== mesFiltro) return;
+      // -------------------------
+      // filtro por mês
+      // -------------------------
+      if (mesFiltro && mesFiltro !== "todos") {
 
-  encontrouDados = true;
+        let mesDoc = null;
 
-  if (d.status === "pendente") pend++;
-  if (d.status === "aprovado") aprov++;
-  if (d.status === "reprovado") reprov++;
-});
+        // usa prazo
+        if (d.prazo) {
 
-// ✅ CASO 1: filtro específico (Maio, Junho...)
-if (mesFiltro && !encontrouDados) {
-  alert("⚠️ Sem dados desse mês");
-  return;
-}
+          const data = new Date(d.prazo);
 
-// ✅ CASO 2: "Todos" mas realmente vazio
-if (!mesFiltro && pend === 0 && aprov === 0 && reprov === 0) {
-  alert("⚠️ Não há dados cadastrados");
-  return;
-}
+          mesDoc =
+            `${data.getMonth() + 1}-${data.getFullYear()}`;
+        }
 
-// ✅ se passou pelas validações → gera gráfico
-gerarGrafico(
-  "graficoCompras",
-  ["Pendentes", "Aprovadas", "Reprovadas"],
-  [pend, aprov, reprov],
-  ["#430fa2", "#03b32c", "#d5061a"]
-);
+        // usa criadoEm
+        else if (d.criadoEm?.toDate) {
+
+          const data = d.criadoEm.toDate();
+
+          mesDoc =
+            `${data.getMonth() + 1}-${data.getFullYear()}`;
+        }
+
+        if (mesDoc !== mesFiltro) return;
+      }
+
+      encontrouDados = true;
+
+      switch (d.status) {
+
+        case "pendente":
+        case "em_espera":
+          pend++;
+          break;
+
+        case "aprovado":
+          aprov++;
+          break;
+
+        case "reprovado":
+          reprov++;
+          break;
+      }
+    });
+
+    if (!encontrouDados) {
+
+      document.getElementById("graficoCompras").style.display = "none";
+
+      alert("⚠️ Sem dados desse mês");
+      return;
+    }
+
+    document.getElementById("graficoCompras").style.display = "block";
+
+    gerarGrafico(
+      "graficoCompras",
+      ["Pendentes", "Aprovadas", "Reprovadas"],
+      [pend, aprov, reprov],
+      ["#187ed1", "#03b32c", "#d5061a"]
+    );
   }
 
   // =========================
@@ -1817,7 +1928,8 @@ gerarGrafico(
     checklistsSnap.forEach(doc => {
 
       const d = doc.data();
-      if (mesFiltro && d.mesAno !== mesFiltro) return;
+      // ✅ ignora filtro de mês se for "todos"
+      if (mesFiltro && mesFiltro !== "todos" && d.mesAno !== mesFiltro) return;
 
       (d.checklist || []).forEach(i => {
 
@@ -1839,20 +1951,20 @@ gerarGrafico(
       return;
     }
 
-const labels = lista.map(i => i[0]);
-const dados = lista.map(i => i[1]);
+    const labels = lista.map(i => i[0]);
+    const dados = lista.map(i => i[1]);
 
-const cores = labels.map(f => {
-  const grupo = pegarGrupoFerramenta(f);
-  return coresGrupos[grupo] || "#999";
-});
+    const cores = labels.map(f => {
+      const grupo = pegarGrupoFerramenta(f);
+      return coresGrupos[grupo] || "#999";
+    });
 
-gerarGrafico(
-  "graficoFerramentasProblema",
-  labels,
-  dados,
-  cores // ✅ agora manda cor correta
-);
+    gerarGrafico(
+      "graficoFerramentasProblema",
+      labels,
+      dados,
+      cores // ✅ agora manda cor correta
+    );
   }
 
   // =========================
@@ -1874,7 +1986,8 @@ gerarGrafico(
         const d = chk.data();
 
         if (d.uid !== user.id) return;
-        if (mesFiltro && d.mesAno !== mesFiltro) return;
+        // ✅ ignora filtro de mês se for "todos"
+        if (mesFiltro && mesFiltro !== "todos" && d.mesAno !== mesFiltro) return;
 
         pontos++;
       });
@@ -1898,11 +2011,16 @@ gerarGrafico(
 function gerarGrafico(id, labels, dados, coresCustom = null) {
 
   const canvas = document.getElementById(id);
+
   if (!canvas) return;
+
+if (dados.every(v => v === 0)) {
+  // não cria gráfico fake
+  return;
+}
 
   if (!window.graficos) window.graficos = {};
 
-  // ✅ DESTROI corretamente
   if (window.graficos[id]) {
     window.graficos[id].destroy();
     delete window.graficos[id];
@@ -1913,7 +2031,7 @@ function gerarGrafico(id, labels, dados, coresCustom = null) {
   const coresMap = {
     OK: "#15c23e",
     Problemas: "#ffd814",
-    Pendentes: "#430fa2",
+    Pendentes: "#187ed1 ",
     Aprovadas: "#03b32c",
     Reprovadas: "#d5061a"
   };
@@ -1924,23 +2042,24 @@ function gerarGrafico(id, labels, dados, coresCustom = null) {
       labels,
       datasets: [{
         data: dados,
-        backgroundColor: coresCustom || labels.map(l => coresMap[l] || "#999"),
+        backgroundColor:
+          coresCustom || labels.map(l => coresMap[l] || "#999"),
         borderColor: "#fff",
         borderWidth: 2
       }]
     },
     options: {
-  responsive: true,
-  maintainAspectRatio: false,
-  layout: {
-    padding: 10
-  }
-}   
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: 10
+      }
+    }
   });
-  setTimeout(() => {
-  window.graficos[id]?.resize();
-}, 50);
 
+  setTimeout(() => {
+    window.graficos[id]?.resize();
+  }, 50);
 }
 
 
@@ -1982,7 +2101,8 @@ window.baixarGrafico = () => {
 window.filtros = {
   tecnicos: null,
   problemas: null,
-  compras: null
+  compras: null,
+  ranking: null
 };
 
 window.filtrarMes = () => {
