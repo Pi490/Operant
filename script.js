@@ -1417,6 +1417,17 @@ await setDoc(
     criadoEm: new Date()
   }
 );
+await fetch("https://hook.us2.make.com/lefcscbgeaz9wow6rk5ugq0oe3oudxat", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    tecnico: userData.nome,
+    ferramenta: ferramenta,
+    motivo: motivo
+  })
+});
 
   alert("✅ Solicitação enviada!");
 };
@@ -1529,23 +1540,6 @@ window.reprovarCompra = async (id) => {
       abrirAprovarCompras();
 };
 
-window.confirmarAprovacao = async (id) => {
-
-  const local = document.getElementById(`local_${id}`).value;
-
-  await setDoc(
-    doc(db, "compras", id),
-    {
-      status: "aprovado",
-      localRetirada: local
-    },
-    { merge: true }
-  );
-
-  alert("✅ Aprovado com local definido");
-
-  abrirAprovarCompras(); // atualiza tela
-};
 
 window.retirar = async (id) => {
 
@@ -1691,6 +1685,20 @@ window.confirmarAprovacaoComPrazo = async (id) => {
     },
     { merge: true }
   );
+// ✅ ENVIA PARA MAKE
+await fetch("SUA_URL_WEBHOOK_APROVACAO", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    tipo: "aprovado",
+    tecnico: data.tecnicoNome,
+    ferramenta: data.ferramenta,
+    motivo: data.motivo,
+    email: data.tecnicoEmail // vamos garantir isso já
+  })
+});
 
   document.getElementById("modalAprovacao")?.remove();
 
