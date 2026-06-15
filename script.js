@@ -1490,10 +1490,10 @@ container.appendChild(wrapper);
       <td>${data.motivo}</td>
       <td>${data.status}</td>
       <td>
-        ${data.status === "pendente" ? `
-          <button onclick="abrirAprovacaoComPrazo('${docSnap.id}')">✅</button>
-          <button onclick="colocarEmEspera('${docSnap.id}')">⏳</button>
-          <button onclick="reprovarCompra('${docSnap.id}')">❌</button>
+        ${(data.status === "pendente" || data.status === "em_espera") ? `
+  <button onclick="abrirAprovacaoComPrazo('${docSnap.id}')">✅</button>
+  <button onclick="colocarEmEspera('${docSnap.id}')">⏳</button>
+  <button onclick="reprovarCompra('${docSnap.id}')">❌</button>
         ` : ""}
 
       </td>
@@ -1685,20 +1685,25 @@ window.confirmarAprovacaoComPrazo = async (id) => {
     },
     { merge: true }
   );
-// ✅ ENVIA PARA MAKE
-await fetch("SUA_URL_WEBHOOK_APROVACAO", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    tipo: "aprovado",
-    tecnico: data.tecnicoNome,
-    ferramenta: data.ferramenta,
-    motivo: data.motivo,
-    email: data.tecnicoEmail // vamos garantir isso já
-  })
-});
+
+  // ✅ PEGA OS DADOS PRIMEIRO
+  const snap = await getDoc(doc(db, "compras", id));
+  const data = snap.data();
+
+  // ✅ ENVIA PARA MAKE
+  await fetch("SUA_URL_WEBHOOK_APROVACAO", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      tipo: "aprovado",
+      tecnico: data.tecnicoNome,
+      ferramenta: data.ferramenta,
+      motivo: data.motivo,
+      email: data.tecnicoEmail
+    })
+  });
 
   document.getElementById("modalAprovacao")?.remove();
 
