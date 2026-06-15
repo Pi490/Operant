@@ -1677,14 +1677,22 @@ window.confirmarAprovacaoComPrazo = async (id) => {
   }
 
   await setDoc(
-    doc(db, "compras", id),
-    {
-      status: "aprovado",
-      prazo,
-      localRetirada: local
-    },
-    { merge: true }
-  );
+  doc(collection(db, "compras")),
+  {
+    tecnicoUid: window.usuarioLogadoUID,
+    tecnicoNome: userData.nome,
+    tecnicoEmail: userData.email, 
+    gestorUid: userData.gestorUid,
+    ferramenta,
+    motivo,
+    status: "pendente",
+    tipo: "manual",
+    prazo: null,
+    localRetirada: null,
+    criadoEm: new Date()
+  }
+);
+
 
   // ✅ PEGA OS DADOS PRIMEIRO
   const snap = await getDoc(doc(db, "compras", id));
