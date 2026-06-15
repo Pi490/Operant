@@ -1676,12 +1676,12 @@ window.confirmarAprovacaoComPrazo = async (id) => {
     return;
   }
 
-  await setDoc(
+ await setDoc(
   doc(collection(db, "compras")),
   {
     tecnicoUid: window.usuarioLogadoUID,
     tecnicoNome: userData.nome,
-    tecnicoEmail: userData.email, 
+    tecnicoEmail: userData.email, ✅
     gestorUid: userData.gestorUid,
     ferramenta,
     motivo,
