@@ -1691,7 +1691,7 @@ window.confirmarAprovacaoComPrazo = async (id) => {
   const data = snap.data();
 
   // ✅ ENVIA PARA MAKE
-  await fetch("SUA_URL_WEBHOOK_APROVACAO", {
+  await fetch("https://hook.us2.make.com/t0jfadbeel07papq93rpgofgdx4c1w8k", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
