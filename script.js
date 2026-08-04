@@ -1,6 +1,7 @@
 import {
   auth,
   db,
+  storage,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -9,7 +10,13 @@ import {
   setDoc,
   getDoc,
   collection,
-  getDocs
+  getDocs,
+  addDoc,
+  deleteDoc,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
 } from "./firebase.js";
 
 window.usuarioLogadoUID = null;
@@ -149,6 +156,9 @@ function esconderTudo() {
 
   const estatisticas = document.getElementById("estatisticasView");
   if (estatisticas) estatisticas.classList.add("hidden");
+
+  const docs = document.getElementById("documentacaoView");
+  if (docs) docs.classList.add("hidden");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1676,30 +1686,20 @@ window.confirmarAprovacaoComPrazo = async (id) => {
     return;
   }
 
- await setDoc(
-  doc(collection(db, "compras")),
-  {
-    tecnicoUid: window.usuarioLogadoUID,
-    tecnicoNome: userData.nome,
-    tecnicoEmail: userData.email, 
-    gestorUid: userData.gestorUid,
-    ferramenta,
-    motivo,
-    status: "pendente",
-    tipo: "manual",
-    prazo: null,
-    localRetirada: null,
-    criadoEm: new Date()
-  }
-);
+  await setDoc(
+    doc(db, "compras", id),
+    {
+      status: "aprovado",
+      prazo,
+      localRetirada: local
+    },
+    { merge: true }
+  );
 
-
-  // ✅ PEGA OS DADOS PRIMEIRO
   const snap = await getDoc(doc(db, "compras", id));
   const data = snap.data();
 
-  // ✅ ENVIA PARA MAKE
-  await fetch("https://hook.us2.make.com/t0jfadbeel07papq93rpgofgdx4c1w8k", {
+  await fetch("SEU_WEBHOOK_MAKE", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -2136,7 +2136,205 @@ window.filtrarMes = () => {
 };
 
 window.abrirDocumentacao = () => {
-  alert("Área de documentação em construção");
+
+  esconderTudo();
+
+  const view = document.getElementById("documentacaoView");
+
+  if (view) {
+    view.classList.remove("hidden");
+  }
+
+  carregarDocumentos();
+};
+
+const documentos = [
+
+  {
+    titulo: "Manual da Maleta",
+    descricao: "Procedimento completo da maleta de ferramentas",
+    arquivo: "docs/manual-maleta.pdf"
+  },
+
+  {
+    titulo: "Checklist de Ferramentas",
+    descricao: "Regras para preenchimento",
+    arquivo: "docs/checklist.pdf"
+  },
+
+  {
+    titulo: "Política de Compras",
+    descricao: "Fluxo de solicitação e aprovação",
+    arquivo: "docs/compras.pdf"
+  }
+
+];
+
+async function carregarDocumentos() {
+
+  const container =
+    document.getElementById("listaDocumentos");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const docs =
+    await getDocs(collection(db, "documentos"));
+
+  docs.forEach((docSnap) => {
+
+    const data = docSnap.data();
+
+    const card =
+      document.createElement("div");
+
+    card.className = "documento-card";
+
+    card.innerHTML = `
+      <h3>${data.titulo}</h3>
+
+      <p>${data.descricao || ""}</p>
+
+      <button
+        onclick="abrirDocumento('${data.arquivoUrl}')">
+        📂 Abrir
+      </button>
+
+      <button
+        onclick="excluirDocumento(
+          '${docSnap.id}',
+        )">
+        🗑 Excluir
+      </button>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+window.adicionarDocumento = async () => {
+
+  try {
+
+    const titulo =
+      document.getElementById("docTitulo").value;
+
+    const descricao =
+      document.getElementById("docDescricao").value;
+
+    const arquivo =
+      document.getElementById("docArquivo").files[0];
+
+    if (!titulo || !arquivo) {
+      alert("Informe o título e selecione um arquivo.");
+      return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("file", arquivo);
+
+    formData.append(
+      "upload_preset",
+      "operant_docs"
+    );
+
+    const resposta = await fetch(
+      "https://api.cloudinary.com/v1_1/n2unugoh/raw/upload",
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+
+    const resultado =
+      await resposta.json();
+
+    console.log(resultado);
+
+    if (!resultado.secure_url) {
+      throw new Error(
+        "Falha ao enviar arquivo para Cloudinary."
+      );
+    }
+
+    await addDoc(
+      collection(db, "documentos"),
+      {
+        titulo,
+        descricao,
+        arquivoUrl: resultado.secure_url,
+        publicId: resultado.public_id,
+        criadoEm: new Date()
+      }
+    );
+
+    alert("✅ Documento enviado!");
+
+    document.getElementById("docTitulo").value = "";
+    document.getElementById("docDescricao").value = "";
+    document.getElementById("docArquivo").value = "";
+
+    carregarDocumentos();
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert(
+      "Erro ao enviar documento:\n" +
+      err.message
+    );
+  }
+  const form =
+  document.getElementById("formDocumento");
+
+if (window.dadosUsuarioAtual?.perfil === "admin") {
+  form.style.display = "block";
+} else {
+  form.style.display = "none";
+}
+};
+
+window.excluirDocumento = async (id) => {
+
+  const confirmar = confirm(
+    "Deseja excluir o documento?"
+  );
+
+  if (!confirmar) return;
+
+  try {
+
+    await deleteDoc(
+      doc(db, "documentos", id)
+    );
+
+    alert("✅ Documento excluído");
+
+    carregarDocumentos();
+
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert(
+      "Erro ao excluir documento:\n" +
+      err.message
+    );
+  }
+};
+
+window.abrirDocumento = (url) => {
+
+  if (!url) {
+    alert("Documento não disponível.");
+    return;
+  }
+
+  window.open(url, "_blank");
 };
 
 function pegarGrupoFerramenta(nomeFerramenta) {
