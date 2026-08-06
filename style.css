@@ -734,3 +734,22 @@ select {
   border-radius:6px;
   cursor:pointer;
 }
+
+.pasta-tecnico {
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+}
+
+.pasta-tecnico summary {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 18px;
+  padding: 10px;
+}
+
+.pasta-tecnico[open] summary {
+  margin-bottom: 15px;
+}
