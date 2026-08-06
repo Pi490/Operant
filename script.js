@@ -270,7 +270,10 @@ async function login() {
 
     if (modal) modal.classList.remove("hidden");
 
-    alert("Erro ao fazer login.");
+    alert(
+  "Erro ao fazer login:\n" +
+  err.message
+        );
   }
 }
 
@@ -301,8 +304,19 @@ async function register() {
     let gestorUid = null;
 
     if (perfil === "tecnico") {
-      gestorUid = document.getElementById("regGestor").value;
+
+    gestorUid =
+    document.getElementById("regGestor").value;
+
+    if (!gestorUid) {
+
+      alert(
+        "Selecione um gestor."
+      );
+
+      return;
     }
+      }
 
     await setDoc(doc(db, "users", cred.user.uid), {
       nome,
@@ -318,7 +332,22 @@ async function register() {
 
   } catch (err) {
     console.error(err);
-    alert("Erro ao cadastrar: " + err.message);
+   if (
+  err.code ===
+  "auth/email-already-in-use"
+) {
+
+  alert(
+    "Esse e-mail já está cadastrado."
+  );
+
+} else {
+
+  alert(
+    "Erro ao cadastrar:\n" +
+    err.message
+  );
+}
   }
 }
 
@@ -1483,6 +1512,7 @@ wrapper.appendChild(table);
 container.appendChild(wrapper);
 
   const tbody = document.getElementById("tbodyCompras");
+  console.log(tbody);
 
   const compras = await getDocs(collection(db, "compras"));
 
@@ -1490,7 +1520,32 @@ container.appendChild(wrapper);
 
     const data = docSnap.data();
 
-    if (data.gestorUid !== window.usuarioLogadoUID) return;
+
+console.log(
+  "GESTOR COMPRA:",
+  data.gestorUid
+);
+
+console.log(
+  "GESTOR LOGADO:",
+  window.usuarioLogadoUID
+);
+
+console.log(
+  data.gestorUid ===
+  window.usuarioLogadoUID
+);
+    if (
+      String(data.gestorUid).trim() !==
+      String(window.usuarioLogadoUID).trim()
+    ) {
+      return;
+    }
+
+    console.log(
+    "PASSOU FILTRO:",
+    data.tecnicoNome
+    );
 
     const tr = document.createElement("tr");
 
@@ -1891,9 +1946,12 @@ async function carregarEstatisticas() {
         }
 
         // usa criadoEm
-        else if (d.criadoEm?.toDate) {
+        else if (d.criadoEm) {
 
-          const data = d.criadoEm.toDate();
+          const data =
+            d.criadoEm.toDate
+              ? d.criadoEm.toDate()
+              : new Date(d.criadoEm);
 
           mesDoc =
             `${data.getMonth() + 1}-${data.getFullYear()}`;
@@ -1921,13 +1979,20 @@ async function carregarEstatisticas() {
       }
     });
 
-    if (!encontrouDados) {
+      if (!encontrouDados) {
 
-      document.getElementById("graficoCompras").style.display = "none";
+        if (
+          mesFiltro &&
+          mesFiltro !== "todos"
+        ) {
 
-      alert("⚠️ Sem dados desse mês");
-      return;
-    }
+          alert(
+            "⚠️ Sem dados desse mês"
+          );
+        }
+
+        return;
+      }
 
     document.getElementById("graficoCompras").style.display = "block";
 
@@ -2135,83 +2200,49 @@ window.filtrarMes = () => {
   carregarEstatisticas();
 };
 
-window.abrirDocumentacao = () => {
+window.abrirDocumentacao = async () => {
 
   esconderTudo();
 
-  const view = document.getElementById("documentacaoView");
+  const view =
+    document.getElementById(
+      "documentacaoView"
+    );
 
   if (view) {
     view.classList.remove("hidden");
   }
 
-  carregarDocumentos();
-};
+  if (
+    window.dadosUsuarioAtual?.perfil ===
+    "admin"
+  ) {
 
-const documentos = [
+    const form =
+      document.getElementById(
+        "formDocumento"
+      );
 
-  {
-    titulo: "Manual da Maleta",
-    descricao: "Procedimento completo da maleta de ferramentas",
-    arquivo: "docs/manual-maleta.pdf"
-  },
+    if (form) {
+      form.style.display = "block";
+    }
 
-  {
-    titulo: "Checklist de Ferramentas",
-    descricao: "Regras para preenchimento",
-    arquivo: "docs/checklist.pdf"
-  },
+    await carregarTecnicosDocumentacao();
 
-  {
-    titulo: "Política de Compras",
-    descricao: "Fluxo de solicitação e aprovação",
-    arquivo: "docs/compras.pdf"
+  } else {
+
+    const form =
+      document.getElementById(
+        "formDocumento"
+      );
+
+    if (form) {
+      form.style.display = "none";
+    }
   }
 
-];
-
-async function carregarDocumentos() {
-
-  const container =
-    document.getElementById("listaDocumentos");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  const docs =
-    await getDocs(collection(db, "documentos"));
-
-  docs.forEach((docSnap) => {
-
-    const data = docSnap.data();
-
-    const card =
-      document.createElement("div");
-
-    card.className = "documento-card";
-
-    card.innerHTML = `
-      <h3>${data.titulo}</h3>
-
-      <p>${data.descricao || ""}</p>
-
-      <button
-        onclick="abrirDocumento('${data.arquivoUrl}')">
-        📂 Abrir
-      </button>
-
-      <button
-        onclick="excluirDocumento(
-          '${docSnap.id}',
-        )">
-        🗑 Excluir
-      </button>
-    `;
-
-    container.appendChild(card);
-  });
-}
+  carregarDocumentos();
+};
 
 window.adicionarDocumento = async () => {
 
@@ -2223,58 +2254,46 @@ window.adicionarDocumento = async () => {
     const descricao =
       document.getElementById("docDescricao").value;
 
+    const tecnicoUid =
+      document.getElementById("docTecnico").value;
+
     const arquivo =
       document.getElementById("docArquivo").files[0];
 
-    if (!titulo || !arquivo) {
-      alert("Informe o título e selecione um arquivo.");
+    if (!titulo || !arquivo || !tecnicoUid) {
+
+      alert(
+        "Selecione um técnico e escolha um arquivo."
+      );
+
       return;
     }
 
-    const formData = new FormData();
-
-    formData.append("file", arquivo);
-
-    formData.append(
-      "upload_preset",
-      "operant_docs"
-    );
-
-    const resposta = await fetch(
-      "https://api.cloudinary.com/v1_1/n2unugoh/raw/upload",
-      {
-        method: "POST",
-        body: formData
-      }
-    );
-
-    const resultado =
-      await resposta.json();
-
-    console.log(resultado);
-
-    if (!resultado.secure_url) {
-      throw new Error(
-        "Falha ao enviar arquivo para Cloudinary."
-      );
-    }
+    const arquivoUrl =
+      URL.createObjectURL(arquivo);
 
     await addDoc(
       collection(db, "documentos"),
       {
         titulo,
         descricao,
-        arquivoUrl: resultado.secure_url,
-        publicId: resultado.public_id,
-        criadoEm: new Date()
+
+        tecnicoUid,
+
+        gestorUid:
+          window.usuarioLogadoUID,
+
+        arquivoUrl,
+
+        nomeArquivo:
+          arquivo.name,
+
+        criadoEm:
+          new Date()
       }
     );
 
-    alert("✅ Documento enviado!");
-
-    document.getElementById("docTitulo").value = "";
-    document.getElementById("docDescricao").value = "";
-    document.getElementById("docArquivo").value = "";
+    alert("✅ Documento adicionado!");
 
     carregarDocumentos();
 
@@ -2283,27 +2302,176 @@ window.adicionarDocumento = async () => {
     console.error(err);
 
     alert(
-      "Erro ao enviar documento:\n" +
+      "Erro ao adicionar documento:\n" +
       err.message
     );
   }
-  const form =
-  document.getElementById("formDocumento");
-
-if (window.dadosUsuarioAtual?.perfil === "admin") {
-  form.style.display = "block";
-} else {
-  form.style.display = "none";
-}
 };
+
+async function carregarDocumentos() {
+
+  const container =
+    document.getElementById("listaDocumentos");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const docsSnap =
+    await getDocs(
+      collection(db, "documentos")
+    );
+
+  const grupos = {};
+
+  docsSnap.forEach((docSnap) => {
+
+    const data = docSnap.data();
+
+    // Técnico só vê os próprios
+    if (
+      window.dadosUsuarioAtual?.perfil ===
+      "tecnico"
+    ) {
+
+      if (
+        data.tecnicoUid !==
+        window.usuarioLogadoUID
+      ) {
+        return;
+      }
+    }
+
+    // Admin só vê documentos de técnicos dele
+    if (
+      window.dadosUsuarioAtual?.perfil ===
+      "admin"
+    ) {
+
+      if (
+        data.gestorUid !==
+        window.usuarioLogadoUID
+      ) {
+        return;
+      }
+    }
+
+    if (!grupos[data.tecnicoUid]) {
+      grupos[data.tecnicoUid] = [];
+    }
+
+    grupos[data.tecnicoUid].push({
+      id: docSnap.id,
+      ...data
+    });
+
+  });
+
+  for (const tecnicoUid in grupos) {
+
+    const tecnicoSnap =
+      await getDoc(
+        doc(db, "users", tecnicoUid)
+      );
+
+    const nomeTecnico =
+      tecnicoSnap.exists()
+        ? tecnicoSnap.data().nome
+        : "Técnico";
+
+    const pasta =
+      document.createElement("details");
+
+    pasta.className = "pasta-tecnico";
+      const qtd = grupos[tecnicoUid].length;
+
+      pasta.innerHTML = `
+        <summary>
+          ${nomeTecnico}
+          <span style="color:#666;font-weight:normal">
+            ${qtd} ${qtd === 1 ? "arquivo" : "arquivos"}
+          </span>
+        </summary>
+      `;
+    grupos[tecnicoUid].forEach((docData) => {
+
+      const card =
+        document.createElement("div");
+
+      card.className =
+        "documento-card";
+
+      card.innerHTML = `
+        <h3>${docData.titulo}</h3>
+
+        <p>
+          ${docData.descricao || ""}
+        </p>
+
+        <button
+          onclick="abrirDocumento('${docData.arquivoUrl}')">
+          📂 Abrir
+        </button>
+
+        ${
+          window.dadosUsuarioAtual?.perfil ===
+          "admin"
+            ? `
+          <button
+            onclick="excluirDocumento('${docData.id}')">
+            🗑 Excluir
+          </button>
+          `
+            : ""
+        }
+      `;
+
+      pasta.appendChild(card);
+
+    });
+
+    container.appendChild(pasta);
+
+  }
+}
+
+async function carregarTecnicosDocumentacao() {
+
+  const select =
+    document.getElementById("docTecnico");
+
+  if (!select) return;
+
+  select.innerHTML =
+    '<option value="">Selecione um técnico</option>';
+
+  const users =
+    await getDocs(collection(db, "users"));
+
+  users.forEach((u) => {
+
+    const data = u.data();
+
+    if (data.perfil === "tecnico") {
+
+      const option =
+        document.createElement("option");
+
+      option.value = u.id;
+
+      option.textContent =
+        `${data.nome}`;
+
+      select.appendChild(option);
+    }
+  });
+}
 
 window.excluirDocumento = async (id) => {
 
-  const confirmar = confirm(
-    "Deseja excluir o documento?"
-  );
-
-  if (!confirmar) return;
+  if (!confirm("Excluir documento?")) {
+    return;
+  }
 
   try {
 
@@ -2315,14 +2483,12 @@ window.excluirDocumento = async (id) => {
 
     carregarDocumentos();
 
-
   } catch (err) {
 
     console.error(err);
 
     alert(
-      "Erro ao excluir documento:\n" +
-      err.message
+      "Erro ao excluir documento."
     );
   }
 };
@@ -2330,7 +2496,9 @@ window.excluirDocumento = async (id) => {
 window.abrirDocumento = (url) => {
 
   if (!url) {
-    alert("Documento não disponível.");
+
+    alert("Documento não encontrado.");
+
     return;
   }
 
