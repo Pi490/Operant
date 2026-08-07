@@ -120,6 +120,14 @@
     accept=".pdf"
   >
 
+  <label>
+  <input
+    type="checkbox"
+    id="docAssinatura"
+  />
+  Requer assinatura do técnico
+</label>
+
   <button onclick="adicionarDocumento()">
     Adicionar Documento
   </button>
@@ -441,7 +449,10 @@
 </div>
 </div>
 <div id="comprasView" class="card hidden"></div>
-
+<div id="minhasSolicitacoesView"class="hidden">
+  <h2>Minhas Solicitações</h2>
+  <div id="listaMinhasSolicitacoes"></div>
+</div>
 
 <!-- MODAL TÉCNICO -->
 <div
