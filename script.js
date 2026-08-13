@@ -373,21 +373,69 @@ onAuthStateChanged(auth, async user => {
     if (homeView) homeView.classList.remove("hidden");
     carregarPerfil(user.uid);
 
-  } else {
+        } else {
 
-    window.usuarioLogadoUID = null;
+          window.usuarioLogadoUID = null;
+          window.dadosUsuarioAtual = null;
 
-    // ✅ MOSTRA LOGIN
-    const loginLink = document.getElementById("loginLink");
-    if (loginLink) loginLink.style.display = "inline";
+          const loginLink = document.getElementById("loginLink");
+          if (loginLink) loginLink.style.display = "inline";
 
-    // ✅ ESCONDE PERFIL
-    const perfil = document.getElementById("headerPerfil");
-    if (perfil) perfil.classList.add("hidden");
+          const perfil = document.getElementById("headerPerfil");
+          if (perfil) perfil.classList.add("hidden");
 
-  }
+          if (menuDropdown) {
+            menuDropdown.innerHTML = "";
+            menuDropdown.classList.add("hidden");
+          }
+
+          if (perfilMenu) {
+            perfilMenu.classList.add("hidden");
+          }
+          if (menuToggle) {
+            menuToggle.classList.add("hidden");
+          }
+          if (menuToggle) {
+             menuToggle.classList.remove("hidden");
+          }
+        }
 });
+    window.voltarInicio = () => {
 
+      esconderTudo();
+
+      if (!window.dadosUsuarioAtual) {
+
+        document
+          .getElementById("homeView")
+          ?.classList.remove("hidden");
+
+        return;
+      }
+
+      if (
+        window.dadosUsuarioAtual.perfil ===
+        "admin"
+      ) {
+
+        document
+          .getElementById("regrasView")
+          ?.classList.remove("hidden");
+
+        return;
+      }
+
+      if (
+        window.dadosUsuarioAtual.perfil ===
+        "tecnico"
+      ) {
+
+        document
+          .getElementById("regrasTecnicoView")
+          ?.classList.remove("hidden");
+      }
+
+    };
 window.carregarPerfil = async uid => {
 
   try {
@@ -1908,6 +1956,11 @@ window.abrirEstatisticas = async () => {
   view.classList.remove("hidden");
 
   const tipoAtual = document.querySelector("#estatisticasView select:nth-of-type(1)")?.value || "tecnicos";
+  const contador = document.querySelector("#adminView p");
+
+    if (contador) {
+      contador.style.display = "none";
+    }
 
   window.trocarGrafico(tipoAtual);
   await carregarEstatisticas();
