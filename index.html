@@ -15,8 +15,16 @@
 
   <div class="header-inner">
 
-    <div class="logo-area">
-      <img src="./img/logo.png" alt="Logo" class="logo-img">
+   <div
+  class="logo-area"
+  onclick="voltarInicio()"
+  style="cursor:pointer;">
+
+  <img
+    src="./img/logo.png"
+    alt="Logo"
+    class="logo-img">
+
      <div class="header-title">Operant</div>
     </div>
 
@@ -414,9 +422,14 @@
   <h2>Administração</h2>
 
   <p>
-    ✅ Regularizado: <span id="countOk">0</span> |
-    ⚠️ Problemas: <span id="countProblemas">0</span> |
-    ❌ Pendentes: <span id="countPendente">0</span>
+  🟢 Regularizados
+  <span id="countOk">0</span>
+
+  🟡 Problemas
+  <span id="countProblemas">0</span>
+
+  🔴 Pendentes
+  <span id="countPendente">0</span>
   </p>
 
   <table id="tabelaTecnicos" border="1" width="100%">
@@ -531,17 +544,6 @@
    <div id="rankingContainer" style="display:none;"></div>
   <canvas id="graficoFerramentasProblema"></canvas>
   </div>
-  <div class="cards" id="cardsResumo">
-  <div class="card-metrica">
-    ✅ Regularizados <span id="cardOk">0</span>
-  </div>
-  <div class="card-metrica">
-    ⚠️ Problemas <span id="cardProblemas">0</span>
-  </div>
-  <div class="card-metrica">
-    ❌ Pendentes <span id="cardPendentes">0</span>
-  </div>
-</div>
     <button onclick="baixarGrafico()">Baixar gráfico</button>
 </div>
 </div>
